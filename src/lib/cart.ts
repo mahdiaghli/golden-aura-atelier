@@ -3,6 +3,7 @@ import { products, priceBreakdown, type Product } from "./products";
 
 type CartItem = { id: string; qty: number };
 const KEY = "aurum-cart-v1";
+const EMPTY_CART_SNAPSHOT: CartItem[] = [];
 
 let state: CartItem[] = [];
 const listeners = new Set<() => void>();
@@ -31,7 +32,7 @@ function getSnapshot() {
   return state;
 }
 function getServerSnapshot(): CartItem[] {
-  return [];
+  return EMPTY_CART_SNAPSHOT;
 }
 
 export function useCart() {

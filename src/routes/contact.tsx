@@ -1,7 +1,9 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
-import { Instagram, MapPin, Phone, Send } from "lucide-react";
-import { Shell } from "@/components/site/Chrome";
-const address="مشهد، بین حر ۷ و ۹، جنب درمانگاه سما، طلاجات عقلی";
-const neshan="https://neshan.org/maps/?q=%D9%85%D8%B4%D9%87%D8%AF%20%D8%A8%DB%8C%D9%86%20%D8%AD%D8%B1%207%20%D9%88%209%20%D8%AC%D9%86%D8%A8%20%D8%AF%D8%B1%D9%85%D8%A7%D9%86%DA%AF%D8%A7%D9%87%20%D8%B3%D9%85%D8%A7%20%D8%B7%D9%84%D8%A7%D8%AC%D8%A7%D8%AA%20%D8%B9%D9%82%D9%84%DB%8C";
-export const Route=createFileRoute("/contact")({component:Contact});
-function Contact(){const cards=[{icon:Phone,title:"Call us",value:"09153145726",href:"tel:09153145726"},{icon:Phone,title:"Second line",value:"05133762430",href:"tel:05133762430"},{icon:Send,title:"Telegram admin",value:"@aaadmin_aghli",href:"https://t.me/aaadmin_aghli"},{icon:Instagram,title:"Instagram",value:"@aghligold",href:"https://instagram.com/aghligold/"}];return <Shell><section className="max-w-7xl mx-auto px-6 py-16 lg:py-24"><p className="text-[11px] uppercase tracking-[.32em] text-gold">Contact Aghli Gold</p><h1 className="mt-4 font-serif text-5xl">We are here to help.</h1><div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">{cards.map(({icon:Icon,title,value,href})=><a key={title} href={href} target={href.startsWith("http")?"_blank":undefined} rel="noreferrer" className="border border-onyx/10 bg-white/60 p-6 hover:border-gold"><Icon className="text-gold"/><p className="mt-5 text-[10px] uppercase tracking-widest text-onyx/50">{title}</p><p className="mt-2 font-serif text-xl">{value}</p></a>)}</div></section><section className="max-w-7xl mx-auto px-6 pb-24"><div className="bg-onyx p-8 md:p-12 text-parchment"><MapPin className="text-gold"/><h2 className="mt-5 font-serif text-3xl">Visit our Mashhad store</h2><p dir="rtl" className="mt-4 text-lg text-parchment/75">{address}</p><a href={neshan} target="_blank" rel="noreferrer" className="mt-8 inline-block bg-gold px-7 py-4 text-[10px] font-bold uppercase tracking-widest text-onyx">Open in Neshan map</a></div></section></Shell>}
+import { createFileRoute } from '@tanstack/react-router'
+
+export const Route = createFileRoute('/contact')({
+  component: RouteComponent,
+})
+
+function RouteComponent() {
+  return <div>Hello "/contact"!</div>
+}

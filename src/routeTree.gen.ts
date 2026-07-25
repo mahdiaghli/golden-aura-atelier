@@ -19,6 +19,7 @@ import { Route as FaqRouteImport } from './routes/faq'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PricesRouteImport } from './routes/prices'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as Under1000RouteImport } from './routes/under-1000'
@@ -77,6 +78,11 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ServicesRoute = ServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/prices': typeof PricesRoute
   '/profile': typeof ProfileRoute
+  '/services': typeof ServicesRoute
   '/shop': typeof ShopRouteWithChildren
   '/signup': typeof SignupRoute
   '/under-1000': typeof Under1000Route
@@ -143,6 +150,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/prices': typeof PricesRoute
   '/profile': typeof ProfileRoute
+  '/services': typeof ServicesRoute
   '/shop': typeof ShopRouteWithChildren
   '/signup': typeof SignupRoute
   '/under-1000': typeof Under1000Route
@@ -163,6 +171,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/prices': typeof PricesRoute
   '/profile': typeof ProfileRoute
+  '/services': typeof ServicesRoute
   '/shop': typeof ShopRouteWithChildren
   '/signup': typeof SignupRoute
   '/under-1000': typeof Under1000Route
@@ -184,6 +193,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/prices'
     | '/profile'
+    | '/services'
     | '/shop'
     | '/signup'
     | '/under-1000'
@@ -203,6 +213,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/prices'
     | '/profile'
+    | '/services'
     | '/shop'
     | '/signup'
     | '/under-1000'
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/prices'
     | '/profile'
+    | '/services'
     | '/shop'
     | '/signup'
     | '/under-1000'
@@ -242,6 +254,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PricesRoute: typeof PricesRoute
   ProfileRoute: typeof ProfileRoute
+  ServicesRoute: typeof ServicesRoute
   ShopRoute: typeof ShopRouteWithChildren
   SignupRoute: typeof SignupRoute
   Under1000Route: typeof Under1000Route
@@ -319,6 +332,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop': {
@@ -404,6 +424,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PricesRoute: PricesRoute,
   ProfileRoute: ProfileRoute,
+  ServicesRoute: ServicesRoute,
   ShopRoute: ShopRouteWithChildren,
   SignupRoute: SignupRoute,
   Under1000Route: Under1000Route,

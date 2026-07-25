@@ -1,35 +1,10 @@
 ﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Shell } from "@/components/site/Chrome";
+import { SHOP_SEARCH_DEFAULT, type ShopSearch } from "@/lib/shop-search";
 import { products, categories, priceBreakdown, formatToman, type Category, type Karat } from "@/lib/products";
 
-type ShopSearch = {
-  category: Category | "all";
-  karat: Karat | "all";
-  gender: "all" | "women" | "men" | "children" | "unisex";
-  color: "all" | "yellow" | "white" | "rose" | "two-tone" | "three-tone";
-  gemstone: "all" | "none" | "diamond" | "emerald" | "ruby" | "pearl";
-  style: "all" | "classic" | "minimal" | "modern" | "luxury" | "vintage";
-  occasion: "all" | "everyday" | "engagement" | "wedding" | "party" | "gift" | "investment";
-  min: number;
-  max: number;
-  sort: "featured" | "price-asc" | "price-desc" | "weight-desc";
-  q: string;
-};
-
-const DEFAULTS: ShopSearch = {
-  category: "all",
-  karat: "all",
-  gender: "all",
-  color: "all",
-  gemstone: "all",
-  style: "all",
-  occasion: "all",
-  min: 0,
-  max: 1_000_000_000,
-  sort: "featured",
-  q: "",
-};
+const DEFAULTS: ShopSearch = SHOP_SEARCH_DEFAULT;
 
 export const Route = createFileRoute("/shop")({
   validateSearch: (raw: Record<string, unknown>): ShopSearch => ({
@@ -40,8 +15,13 @@ export const Route = createFileRoute("/shop")({
     gemstone: (raw.gemstone as ShopSearch["gemstone"]) || DEFAULTS.gemstone,
     style: (raw.style as ShopSearch["style"]) || DEFAULTS.style,
     occasion: (raw.occasion as ShopSearch["occasion"]) || DEFAULTS.occasion,
+    stock: (raw.stock as ShopSearch["stock"]) || DEFAULTS.stock,
     min: Number(raw.min) || DEFAULTS.min,
     max: Number(raw.max) || DEFAULTS.max,
+    minWeight: Number(raw.minWeight) || DEFAULTS.minWeight,
+    maxWeight: Number(raw.maxWeight) || DEFAULTS.maxWeight,
+    minMaking: Number(raw.minMaking) || DEFAULTS.minMaking,
+    maxMaking: Number(raw.maxMaking) || DEFAULTS.maxMaking,
     sort: (raw.sort as ShopSearch["sort"]) || DEFAULTS.sort,
     q: (raw.q as string) || "",
   }),
@@ -283,6 +263,7 @@ function ShopPage() {
                     key={p.id}
                     to="/shop/$id"
                     params={{ id: p.id }}
+                    search={SHOP_SEARCH_DEFAULT}
                     className="group"
                   >
                     <div className="overflow-hidden bg-secondary mb-4 relative">
