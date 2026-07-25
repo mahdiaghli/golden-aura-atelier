@@ -31,5 +31,10 @@ dist-ssr
 *.sln
 *.sw?
 
+/rebuilt.File1405-04-23/
+/AppZargarData_1405-04-23/
+
+
+
 rebuilt.File1405-04-23/*
 AppZargarData_1405-04-23/*
