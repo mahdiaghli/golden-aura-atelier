@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Shell } from "@/components/site/Chrome";
 import { useCart } from "@/lib/cart";
 import { formatToman } from "@/lib/products";
+import { createOrder } from "@/lib/orders";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -55,8 +56,23 @@ function CheckoutPage() {
     );
   }
 
-  const submit = (e: React.FormEvent) => {
+  const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    createOrder({
+      customer: {
+        name: `${formData.get("first")} ${formData.get("last")}`,
+        email: formData.get("email") as string,
+        phone: formData.get("phone") as string,
+        address: formData.get("street") as string,
+        city: formData.get("city") as string,
+        country: formData.get("country") as string,
+      },
+      items: items.map(({ product, qty, lineTotal }) => ({ product, quantity: qty, lineTotal })),
+      subtotal,
+      shipping,
+      total,
+    });
     clear();
     setPlaced(true);
     router.navigate({ to: "/checkout" });

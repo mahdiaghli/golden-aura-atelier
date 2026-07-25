@@ -1,139 +1,29 @@
-import { Link } from "@tanstack/react-router";
+﻿import { Link } from "@tanstack/react-router";
+import {
+  ChevronDown,
+  Menu,
+  Search,
+  ShoppingBag,
+  X,
+  Send,
+  Instagram,
+  Phone,
+  MapPin
+} from "lucide-react";import { useState } from "react";
 import { useCart } from "@/lib/cart";
 
-export function Ticker() {
-  const items = [
-    { label: "Live 18K Gold", value: "3,452,000 Toman", dot: "bg-emerald-500 animate-pulse" },
-    { label: "Global Spot", value: "$2,042.40", dot: "bg-gold-soft" },
-    { label: "Market Status", value: "Open", dot: "bg-gold" },
-    { label: "24K Gold", value: "4,602,000 Toman", dot: "bg-emerald-500" },
-    { label: "Making Rate", value: "7% base", dot: "bg-gold-soft" },
-  ];
-  const doubled = [...items, ...items];
-  return (
-    <div className="bg-onyx text-parchment py-2 overflow-hidden whitespace-nowrap border-b border-gold/30">
-      <div className="flex animate-marquee gap-12 text-[10px] font-medium tracking-[0.2em] uppercase w-max px-6">
-        {doubled.map((it, i) => (
-          <div key={i} className="flex items-center gap-2 shrink-0">
-            <span className={`w-1.5 h-1.5 rounded-full ${it.dot}`} />
-            {it.label}: {it.value}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+const megaMenu = [
+  { label: "Products", icon: "💍", links: ["Ring", "Wedding Ring", "Engagement Ring", "Necklace", "Nameplate / Tag", "Chain", "Bracelet", "Anklet", "Earrings", "Toe Ring", "Pendant", "Brooch", "Complete Set", "Half Set", "Watch Pendant", "Men's Accessories", "Cufflinks", "Tie Clip / Tie Bar"] },
+  { label: "Gemstones", icon: "💎", links: ["Diamond", "Brilliant", "Ruby", "Emerald", "Sapphire", "Opal", "Tanzanite", "Pearl", "Topaz", "Amethyst"] },
+  { label: "Investment", icon: "🪙", links: ["Bullion / Bar", "Coin", "Melted Gold", "Second-Hand Gold", "Low-Making-Charge Gold"] },
+  { label: "Gifts", icon: "🎁", links: ["Birthday Gift", "Anniversary Gift", "Valentine's Gift", "Mother's Day Gift", "Father's Day Gift", "Wedding Gift", "Graduation Gift"] },
+  { label: "Wedding", icon: "👰", links: ["Ring", "Bridal Set", "Couple's Set", "Gift Suggestion"] },
+  { label: "Services", icon: "🛠", links: ["Repair", "Resizing", "Polishing", "Custom Order / Made-to-Order", "Second-Hand Gold Sales", "Gold Exchange / Trade-in", "Insurance"] },
+  { label: "Resources", icon: "📚", links: ["Buying Guide", "Blog", "FAQs", "Care & Maintenance Guide"] },
+];
+function menuSearch(item: string) { const map: Record<string, "rings" | "necklaces" | "bracelets" | "bullion"> = { Ring:"rings", "Wedding Ring":"rings", "Engagement Ring":"rings", Necklace:"necklaces", Chain:"necklaces", Bracelet:"bracelets", Anklet:"bracelets", "Bullion / Bar":"bullion", Coin:"bullion" }; return map[item] ? { category: map[item] } : { q: item }; }
+export function Ticker() { const items=[{label:"Live 18K Gold",value:"3,452,000 Toman",dot:"bg-emerald-500 animate-pulse"},{label:"Global Spot",value:"$2,042.40",dot:"bg-gold-soft"},{label:"Market Status",value:"Open",dot:"bg-gold"},{label:"24K Gold",value:"4,602,000 Toman",dot:"bg-emerald-500"},{label:"Making Rate",value:"7% base",dot:"bg-gold-soft"}]; return <div className="bg-onyx text-parchment py-2 overflow-hidden whitespace-nowrap border-b border-gold/30"><div className="flex animate-marquee gap-12 text-[10px] font-medium tracking-[0.2em] uppercase w-max px-6">{[...items,...items].map((it,i)=><div key={i} className="flex items-center gap-2 shrink-0"><span className={`w-1.5 h-1.5 rounded-full ${it.dot}`}/>{it.label}: {it.value}</div>)}</div></div>; }
+export function Nav() { const {count}=useCart(); const [open,setOpen]=useState<string|null>(null); const [mobileOpen,setMobileOpen]=useState(false); return <nav className="sticky top-0 z-50 bg-parchment/95 backdrop-blur-md border-b border-onyx/10" onMouseLeave={()=>setOpen(null)}><div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between relative"><button className="lg:hidden p-2 -ml-2" onClick={()=>setMobileOpen(v=>!v)} aria-label="Toggle navigation">{mobileOpen?<X size={21}/>:<Menu size={22}/>}</button><Link to="/" className="lg:absolute lg:left-1/2 lg:-translate-x-1/2"><h1 className="font-serif text-3xl tracking-tighter font-bold select-none">AGHLI<span className="text-gold">.</span></h1></Link><div className="flex items-center gap-3 sm:gap-5"><Link to="/shop" aria-label="Search collection" className="p-2 hover:text-gold transition-colors"><Search size={19}/></Link><Link to="/profile" className="hidden sm:block text-[11px] uppercase tracking-widest font-semibold text-gold">Account</Link><Link to="/cart" className="relative" aria-label="Cart">{count>0&&<span className="absolute -top-2 -right-2 bg-gold text-parchment text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">{count}</span>}<ShoppingBag size={20} strokeWidth={1.7}/></Link></div></div><div className="hidden lg:block border-t border-onyx/8"><div className="max-w-7xl mx-auto px-6 h-12 flex items-center justify-center gap-1">{megaMenu.map(menu=><div key={menu.label} className="relative" onMouseEnter={()=>setOpen(menu.label)}><button onClick={()=>setOpen(open===menu.label?null:menu.label)} className={`flex items-center gap-1 px-4 h-12 text-[11px] uppercase tracking-widest font-semibold transition-colors ${open===menu.label?"text-gold":"hover:text-gold"}`}>{menu.label}<ChevronDown size={13} className={open===menu.label?"rotate-180":""}/></button>{open===menu.label&&<div className="absolute left-1/2 -translate-x-1/2 top-12 w-[min(760px,90vw)] bg-parchment border border-onyx/10 shadow-xl p-7"><div className="flex items-center gap-2 border-b border-onyx/10 pb-4 mb-5"><span>{menu.icon}</span><p className="text-[11px] uppercase tracking-[.22em] font-bold">Shop {menu.label}</p></div><div className="grid grid-cols-3 gap-x-8 gap-y-3">{menu.links.map(item=><Link key={item} to="/shop" search={menuSearch(item)} onClick={()=>setOpen(null)} className="text-sm text-onyx/70 hover:text-gold transition-colors">{item}</Link>)}</div><Link to="/shop" onClick={()=>setOpen(null)} className="inline-block mt-6 text-[10px] uppercase tracking-widest font-bold text-gold border-b border-gold pb-1">View all {menu.label}</Link></div>}</div>)}<Link to="/under-1000" className="ml-2 text-[11px] uppercase tracking-widest font-semibold text-gold hover:text-onyx">Under $1000</Link></div></div>{mobileOpen&&<div className="lg:hidden border-t border-onyx/10 bg-parchment max-h-[75vh] overflow-y-auto px-6 py-3">{megaMenu.map(menu=><details key={menu.label} className="border-b border-onyx/10 py-3"><summary className="text-[11px] uppercase tracking-widest font-semibold cursor-pointer">{menu.icon} {menu.label}</summary><div className="grid grid-cols-2 gap-3 pt-4 pb-1">{menu.links.map(item=><Link key={item} to="/shop" search={menuSearch(item)} onClick={()=>setMobileOpen(false)} className="text-sm text-onyx/70">{item}</Link>)}</div></details>)}</div>}</nav>; }
+export function Footer() { const address="مشهد، بین حر ۷ و ۹، جنب درمانگاه سما، طلاجات عقلی"; const neshan="https://neshan.org/maps/?q=%D9%85%D8%B4%D9%87%D8%AF%20%D8%A8%DB%8C%D9%86%20%D8%AD%D8%B1%207%20%D9%88%209%20%D8%AC%D9%86%D8%A8%20%D8%AF%D8%B1%D9%85%D8%A7%D9%86%DA%AF%D8%A7%D9%87%20%D8%B3%D9%85%D8%A7%20%D8%B7%D9%84%D8%A7%D8%AC%D8%A7%D8%AA%20%D8%B9%D9%82%D9%84%DB%8C"; return <footer className="bg-parchment border-t border-onyx/10 pt-16 pb-10"><div className="max-w-7xl mx-auto px-6"><div className="grid gap-12 lg:grid-cols-[1.05fr_.9fr_.8fr_1.25fr] mb-16"><div><h2 className="font-serif text-4xl tracking-tighter">AGHLI<span className="text-gold">.</span></h2><p className="mt-5 max-w-xs text-sm leading-relaxed text-onyx/60">Gold jewelry, investment gold, and personal service from Aghli Gold.</p><div className="mt-6 flex gap-4 text-onyx/60"><a aria-label="Telegram" href="https://t.me/aghligold" target="_blank" rel="noreferrer" className="hover:text-gold"><Send size={18}/></a><a aria-label="Instagram" href="https://instagram.com/aghligold/" target="_blank" rel="noreferrer" className="hover:text-gold"><Instagram size={18}/></a></div></div><div><h3 className="text-[11px] uppercase tracking-widest font-bold">Contact us</h3><div className="mt-5 space-y-3 text-sm text-onyx/60"><a className="flex gap-2 hover:text-gold" href="tel:09153145726"><Phone size={15}/>09153145726</a><a className="flex gap-2 hover:text-gold" href="tel:05133762430"><Phone size={15}/>05133762430</a><a className="flex gap-2 hover:text-gold" href="https://t.me/aaadmin_aghli" target="_blank" rel="noreferrer"><Send size={15}/>@aaadmin_aghli</a></div></div><div><h3 className="text-[11px] uppercase tracking-widest font-bold">Explore</h3><div className="mt-5 space-y-3 text-sm text-onyx/60"><Link to="/shop" className="block hover:text-gold">Shop</Link><Link to="/prices" className="block hover:text-gold">Market prices</Link><Link to="/why-us" className="block hover:text-gold">Why us</Link><Link to="/contact" className="block hover:text-gold">Contact</Link></div></div><div><h3 className="text-[11px] uppercase tracking-widest font-bold">Visit Aghli Gold</h3><p dir="rtl" className="mt-4 flex gap-2 text-sm leading-relaxed text-onyx/60"><MapPin size={18} className="shrink-0 text-gold"/>{address}</p><a href={neshan} target="_blank" rel="noreferrer" className="mt-5 inline-block border-b border-gold pb-1 text-[10px] font-bold uppercase tracking-widest text-gold">Open in Neshan map</a></div></div><div className="flex flex-col gap-3 border-t border-onyx/10 pt-7 text-[10px] uppercase tracking-widest text-onyx/45 sm:flex-row sm:justify-between"><p>© 2026 Aghli Gold</p><p>Authenticity · Transparent pricing · Personal service</p></div></div></footer>; }
+export function Shell({children}:{children:React.ReactNode}) { return <div className="min-h-screen bg-parchment text-onyx selection:bg-gold/20"><Ticker/><Nav/>{children}<Footer/></div>; }
 
-export function Nav() {
-  const { count } = useCart();
-  return (
-    <nav className="sticky top-0 z-50 bg-parchment/80 backdrop-blur-md border-b border-onyx/5">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative">
-        <div className="hidden md:flex gap-8 text-[11px] uppercase tracking-widest font-semibold">
-          <Link to="/shop" className="hover:text-gold transition-colors">Collection</Link>
-          <Link to="/shop" search={{ category: "bullion" }} className="hover:text-gold transition-colors">Bullion</Link>
-          <Link to="/about" className="hover:text-gold transition-colors">About</Link>
-          <Link to="/contact" className="hover:text-gold transition-colors">Contact</Link>
-        </div>
-        <Link to="/" className="md:absolute md:left-1/2 md:-translate-x-1/2">
-          <h1 className="font-serif text-3xl tracking-tighter font-bold select-none">
-            AURUM<span className="text-gold">.</span>
-          </h1>
-        </Link>
-        <div className="flex items-center gap-6">
-          <button aria-label="Search" className="p-2 hover:bg-onyx/5 rounded-full transition-colors">
-            <div className="w-5 h-5 border-2 border-onyx rounded-full flex items-center justify-center">
-              <div className="w-1 h-1 bg-onyx rounded-full" />
-            </div>
-          </button>
-          <div className="h-4 w-px bg-onyx/10 hidden sm:block" />
-          <button className="hidden sm:block text-[11px] uppercase tracking-widest font-semibold text-gold">
-            Account
-          </button>
-          <Link to="/cart" className="relative" aria-label="Cart">
-            {count > 0 && (
-              <span className="absolute -top-2 -right-2 bg-gold text-parchment text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                {count}
-              </span>
-            )}
-            <div className="w-5 h-5 border-b-2 border-onyx" />
-          </Link>
-        </div>
-      </div>
-    </nav>
-  );
-}
-
-export function Footer() {
-  return (
-    <footer className="bg-parchment border-t border-onyx/10 pt-24 pb-12">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-20">
-          <div className="col-span-2 md:col-span-1">
-            <h2 className="font-serif text-4xl mb-6 tracking-tighter">
-              AURUM<span className="text-gold">.</span>
-            </h2>
-            <p className="text-sm text-onyx/60 leading-relaxed font-light">
-              Defining luxury for the digital age. A comprehensive ecosystem for collectors and
-              connoisseurs of fine jewelry.
-            </p>
-          </div>
-          {[
-            { t: "Collection", l: ["All Collections", "Rings", "Necklaces", "Bullion"] },
-            { t: "Company", l: ["About Us", "Contact Us", "Book Appointment", "Private Consultations"] },
-          ].map((col) => (
-            <div key={col.t}>
-              <h5 className="text-[11px] uppercase tracking-widest font-bold mb-6">{col.t}</h5>
-              <ul className="space-y-4 text-sm text-onyx/60 font-light">
-                {col.l.map((i) => {
-                  const href = i === "About Us" ? "/about" : i === "Contact Us" ? "/contact" : "/shop";
-                  return (
-                    <li key={i}>
-                      <Link to={href} className="hover:text-gold">{i}</Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
-          <div>
-            <h5 className="text-[11px] uppercase tracking-widest font-bold mb-6">Join the Circle</h5>
-            <p className="text-xs text-onyx/50 mb-6">Exclusive previews and market insights.</p>
-            <form className="flex border-b border-onyx/20 pb-2" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="email"
-                placeholder="Email address"
-                aria-label="Email address"
-                className="bg-transparent border-none outline-none text-sm w-full font-light"
-              />
-              <button className="text-[10px] uppercase font-bold tracking-widest text-gold">
-                Subscribe
-              </button>
-            </form>
-          </div>
-        </div>
-        <div className="flex flex-col md:flex-row justify-between items-center border-t border-onyx/5 pt-12 gap-4">
-          <p className="text-[10px] text-onyx/40 uppercase tracking-widest font-medium">
-            © 2026 Aurum Luxury Gold House
-          </p>
-          <div className="flex gap-6 text-[10px] uppercase tracking-widest text-onyx/40">
-            <a href="#">Privacy</a>
-            <a href="#">Terms</a>
-            <a href="#">Shipping</a>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-export function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-parchment text-onyx selection:bg-gold/20">
-      <Ticker />
-      <Nav />
-      {children}
-      <Footer />
-    </div>
-  );
-}

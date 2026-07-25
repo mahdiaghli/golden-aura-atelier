@@ -11,12 +11,20 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as BlogRouteImport } from './routes/blog'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PricesRouteImport } from './routes/prices'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as Under1000RouteImport } from './routes/under-1000'
+import { Route as WhyUsRouteImport } from './routes/why-us'
+import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ShopIdRouteImport } from './routes/shop.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -27,6 +35,11 @@ const IndexRoute = IndexRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartRoute = CartRouteImport.update({
@@ -44,9 +57,24 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricesRoute = PricesRouteImport.update({
+  id: '/prices',
+  path: '/prices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopRoute = ShopRouteImport.update({
@@ -59,6 +87,26 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Under1000Route = Under1000RouteImport.update({
+  id: '/under-1000',
+  path: '/under-1000',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WhyUsRoute = WhyUsRouteImport.update({
+  id: '/why-us',
+  path: '/why-us',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminOrdersRoute = AdminOrdersRouteImport.update({
+  id: '/admin/orders',
+  path: '/admin/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BlogRoute,
+} as any)
 const ShopIdRoute = ShopIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -68,35 +116,59 @@ const ShopIdRoute = ShopIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
   '/login': typeof LoginRoute
+  '/prices': typeof PricesRoute
+  '/profile': typeof ProfileRoute
   '/shop': typeof ShopRouteWithChildren
   '/signup': typeof SignupRoute
+  '/under-1000': typeof Under1000Route
+  '/why-us': typeof WhyUsRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/shop/$id': typeof ShopIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
   '/login': typeof LoginRoute
+  '/prices': typeof PricesRoute
+  '/profile': typeof ProfileRoute
   '/shop': typeof ShopRouteWithChildren
   '/signup': typeof SignupRoute
+  '/under-1000': typeof Under1000Route
+  '/why-us': typeof WhyUsRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/shop/$id': typeof ShopIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
   '/login': typeof LoginRoute
+  '/prices': typeof PricesRoute
+  '/profile': typeof ProfileRoute
   '/shop': typeof ShopRouteWithChildren
   '/signup': typeof SignupRoute
+  '/under-1000': typeof Under1000Route
+  '/why-us': typeof WhyUsRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/shop/$id': typeof ShopIdRoute
 }
 export interface FileRouteTypes {
@@ -104,46 +176,77 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/blog'
     | '/cart'
     | '/checkout'
     | '/contact'
+    | '/faq'
     | '/login'
+    | '/prices'
+    | '/profile'
     | '/shop'
     | '/signup'
+    | '/under-1000'
+    | '/why-us'
+    | '/admin/orders'
+    | '/blog/$slug'
     | '/shop/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
+    | '/blog'
     | '/cart'
     | '/checkout'
     | '/contact'
+    | '/faq'
     | '/login'
+    | '/prices'
+    | '/profile'
     | '/shop'
     | '/signup'
+    | '/under-1000'
+    | '/why-us'
+    | '/admin/orders'
+    | '/blog/$slug'
     | '/shop/$id'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/blog'
     | '/cart'
     | '/checkout'
     | '/contact'
+    | '/faq'
     | '/login'
+    | '/prices'
+    | '/profile'
     | '/shop'
     | '/signup'
+    | '/under-1000'
+    | '/why-us'
+    | '/admin/orders'
+    | '/blog/$slug'
     | '/shop/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  BlogRoute: typeof BlogRouteWithChildren
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
+  FaqRoute: typeof FaqRoute
   LoginRoute: typeof LoginRoute
+  PricesRoute: typeof PricesRoute
+  ProfileRoute: typeof ProfileRoute
   ShopRoute: typeof ShopRouteWithChildren
   SignupRoute: typeof SignupRoute
+  Under1000Route: typeof Under1000Route
+  WhyUsRoute: typeof WhyUsRoute
+  AdminOrdersRoute: typeof AdminOrdersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -160,6 +263,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cart': {
@@ -183,11 +293,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prices': {
+      id: '/prices'
+      path: '/prices'
+      fullPath: '/prices'
+      preLoaderRoute: typeof PricesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop': {
@@ -204,6 +335,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/under-1000': {
+      id: '/under-1000'
+      path: '/under-1000'
+      fullPath: '/under-1000'
+      preLoaderRoute: typeof Under1000RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/why-us': {
+      id: '/why-us'
+      path: '/why-us'
+      fullPath: '/why-us'
+      preLoaderRoute: typeof WhyUsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/orders': {
+      id: '/admin/orders'
+      path: '/admin/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AdminOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
+    }
     '/shop/$id': {
       id: '/shop/$id'
       path: '/$id'
@@ -213,6 +372,16 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
 interface ShopRouteChildren {
   ShopIdRoute: typeof ShopIdRoute
@@ -227,12 +396,19 @@ const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  BlogRoute: BlogRouteWithChildren,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
+  FaqRoute: FaqRoute,
   LoginRoute: LoginRoute,
+  PricesRoute: PricesRoute,
+  ProfileRoute: ProfileRoute,
   ShopRoute: ShopRouteWithChildren,
   SignupRoute: SignupRoute,
+  Under1000Route: Under1000Route,
+  WhyUsRoute: WhyUsRoute,
+  AdminOrdersRoute: AdminOrdersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,4 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
+import { Award, BadgeCheck, HeartHandshake, MapPin, ShieldCheck, Sparkles, Truck } from "lucide-react";
+import { Shell } from "@/components/site/Chrome";
+import { formatToman, priceBreakdown, products } from "@/lib/products";
+
 import heroRing from "@/assets/hero-ring.jpg";
 import catRings from "@/assets/cat-rings.jpg";
 import catNecklaces from "@/assets/cat-necklaces.jpg";
@@ -6,314 +10,45 @@ import catBracelets from "@/assets/cat-bracelets.jpg";
 import catBullion from "@/assets/cat-bullion.jpg";
 import pricingViz from "@/assets/pricing-viz.jpg";
 
-export const Route = createFileRoute("/")({
-  component: Home,
-  head: () => ({
-    meta: [
-      { title: "Aurum — Fine Gold Jewelry & Investment House" },
-      {
-        name: "description",
-        content:
-          "Aurum crafts 18K and 24K gold jewelry with transparent, live-price valuation. Rings, chains, bracelets and certified bullion for collectors and investors.",
-      },
-      { property: "og:title", content: "Aurum — Fine Gold Jewelry & Investment House" },
-      {
-        property: "og:description",
-        content:
-          "Persian craftsmanship, transparent gold pricing, and investment-grade bullion. Discover the Aurum house.",
-      },
-      { property: "og:url", content: "/" },
-      { name: "twitter:title", content: "Aurum — Fine Gold Jewelry" },
-      { name: "twitter:description", content: "Transparent, live-price fine gold jewelry & bullion." },
-    ],
-    links: [{ rel: "canonical", href: "/" }],
-  }),
-});
+export const Route = createFileRoute("/")({ component: Home });
 
-const categories = [
-  { title: "Ceremonial Rings", count: "142 Pieces", img: catRings, slug: "rings" as const },
-  { title: "Luminous Chains", count: "89 Pieces", img: catNecklaces, slug: "necklaces" as const },
-  { title: "Sculpted Cuffs", count: "64 Pieces", img: catBracelets, slug: "bracelets" as const },
-  { title: "Bullion & Coins", count: "28 Pieces", img: catBullion, slug: "bullion" as const },
+const featuredImages = ["/products/featured-1.jpg", "/products/featured-2.jpg", "/products/featured-3.jpg", "/products/featured-4.jpg"];
+const faqs = [
+  ["How is each piece priced?", "Every price combines live gold weight, workmanship, and applicable tax, shown clearly before purchase."],
+  ["Can I order a custom piece?", "Yes. Our workshop can adapt a design, resize a piece, or create a made-to-order heirloom."],
+  ["Do you offer insured delivery?", "Orders are securely packaged and fully insured until they reach you."],
+];
+const posts = [
+  ["Buying Guide", "How to choose the right karat for everyday jewelry", "6 min read"],
+  ["Care", "The simple guide to keeping gold luminous", "4 min read"],
+  ["Investment", "Bars, coins, and the role of gold in a collection", "7 min read"],
 ];
 
-function Ticker() {
-  const items = [
-    { label: "Live 18K Gold", value: "3,452,000 Toman", dot: "bg-emerald-500 animate-pulse" },
-    { label: "Global Spot", value: "$2,042.40", dot: "bg-gold-soft" },
-    { label: "Market Status", value: "Open", dot: "bg-gold" },
-    { label: "24K Gold", value: "4,602,000 Toman", dot: "bg-emerald-500" },
-    { label: "Making Rate", value: "7% base", dot: "bg-gold-soft" },
-  ];
-  const doubled = [...items, ...items];
-  return (
-    <div className="bg-onyx text-parchment py-2 overflow-hidden whitespace-nowrap border-b border-gold/30">
-      <div className="flex animate-marquee gap-12 text-[10px] font-medium tracking-[0.2em] uppercase w-max px-6">
-        {doubled.map((it, i) => (
-          <div key={i} className="flex items-center gap-2 shrink-0">
-            <span className={`w-1.5 h-1.5 rounded-full ${it.dot}`} />
-            {it.label}: {it.value}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+function ProductCard({ product, image }: { product: (typeof products)[number]; image?: string }) {
+  const { total } = priceBreakdown(product);
+  return <Link to="/shop/$id" params={{ id: product.id }} className="group block"><div className="relative overflow-hidden bg-secondary"><img src={image ?? product.image} alt={product.name} className="aspect-[4/5] w-full object-cover transition duration-700 group-hover:scale-105" />{product.bestseller && <span className="absolute left-3 top-3 bg-gold px-2 py-1 text-[9px] font-bold uppercase tracking-wider">Best seller</span>}</div><div className="pt-4"><h3 className="font-serif text-xl group-hover:text-gold">{product.name}</h3><p className="mt-1 text-[10px] uppercase tracking-widest text-onyx/50">{product.karat} · {product.weight}g</p><p className="mt-2 text-sm font-medium">{formatToman(total)}</p></div></Link>;
 }
 
-function Nav() {
-  return (
-    <nav className="sticky top-0 z-50 bg-parchment/80 backdrop-blur-md border-b border-onyx/5">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative">
-        <div className="hidden md:flex gap-8 text-[11px] uppercase tracking-widest font-semibold">
-          <Link to="/shop" className="hover:text-gold transition-colors">Collections</Link>
-          <a href="#pricing" className="hover:text-gold transition-colors">Investment</a>
-          <a href="#story" className="hover:text-gold transition-colors">Bespoke</a>
-        </div>
-        <div className="md:absolute md:left-1/2 md:-translate-x-1/2">
-          <h1 className="font-serif text-3xl tracking-tighter font-bold select-none">
-            AURUM<span className="text-gold">.</span>
-          </h1>
-        </div>
-        <div className="flex items-center gap-6">
-          <button aria-label="Search" className="p-2 hover:bg-onyx/5 rounded-full transition-colors">
-            <div className="w-5 h-5 border-2 border-onyx rounded-full flex items-center justify-center">
-              <div className="w-1 h-1 bg-onyx rounded-full" />
-            </div>
-          </button>
-          <div className="h-4 w-px bg-onyx/10 hidden sm:block" />
-          <Link to="/login" className="hidden sm:block text-[11px] uppercase tracking-widest font-semibold text-gold hover:text-onyx transition-colors">
-            Sign In
-          </Link>
-          <Link to="/signup" className="hidden sm:block text-[11px] uppercase tracking-widest font-semibold text-onyx/70 hover:text-gold transition-colors">
-            Join
-          </Link>
-          <Link to="/cart" className="relative" aria-label="Cart"><div className="w-5 h-5 border-b-2 border-onyx" /></Link>
-        </div>
-      </div>
-    </nav>
-  );
-}
-
-function Hero() {
-  return (
-    <section className="relative h-[85vh] min-h-[560px] flex items-center overflow-hidden">
-      <div className="absolute inset-0 z-0">
-        <img
-          src={heroRing}
-          alt="A diamond solitaire in yellow gold resting on champagne silk"
-          width={1920}
-          height={1080}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-parchment/90 via-parchment/40 to-transparent" />
-      </div>
-      <div className="relative z-10 max-w-7xl mx-auto px-6 w-full animate-fade-up">
-        <div className="max-w-2xl">
-          <span className="inline-block mb-4 text-[12px] uppercase tracking-[0.4em] font-medium text-gold">
-            Est. 1924 · Tehran
-          </span>
-          <h2 className="text-5xl md:text-7xl font-serif mb-8 leading-[1.05] text-balance">
-            Eternal Craft in <br />
-            <i className="font-normal">Purest Gold</i>
-          </h2>
-          <p className="text-lg text-onyx/70 mb-10 font-light leading-relaxed max-w-md">
-            A curated collection of 18K and 24K gold pieces, where traditional Persian
-            craftsmanship meets contemporary minimalist design.
-          </p>
-          <div className="flex flex-wrap items-center gap-6">
-            <Link to="/shop" className="bg-onyx text-parchment px-10 py-5 text-[11px] uppercase tracking-[0.2em] font-bold hover:bg-gold hover:text-onyx transition-all duration-500">Shop Collection</Link>
-            <Link to="/signup" className="border-b border-onyx py-2 text-[11px] uppercase tracking-[0.2em] font-bold hover:text-gold hover:border-gold transition-all">
-              Book Appointment
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Categories() {
-  return (
-    <section id="collections" className="max-w-7xl mx-auto px-6 py-24">
-      <div className="flex justify-between items-end mb-16 flex-wrap gap-6">
-        <div>
-          <h3 className="text-[12px] uppercase tracking-[0.3em] text-gold mb-2">Categories</h3>
-          <h2 className="text-4xl font-serif">Refined Selections</h2>
-        </div>
-        <a href="#" className="text-[11px] uppercase tracking-widest font-bold border-b-2 border-gold pb-1">
-          View All
-        </a>
-      </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-        {categories.map((c) => (
-          <Link key={c.title} to="/shop" search={{ category: c.slug, karat: "all", gender: "all", min: 0, max: 1000000000, sort: "featured", q: "" }} className="group cursor-pointer">
-            <div className="overflow-hidden mb-4">
-              <img
-                src={c.img}
-                alt={c.title}
-                width={800}
-                height={1000}
-                loading="lazy"
-                className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-            </div>
-            <h4 className="font-serif text-xl">{c.title}</h4>
-            <p className="text-[11px] text-onyx/50 uppercase tracking-widest mt-1">{c.count}</p>
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function PricingFormula() {
-  const rows = [
-    ["Gold Weight", "4.85 Grams"],
-    ["Daily Rate", "3,452,000 T"],
-    ["Making Cost (7%)", "1,172,000 T"],
-    ["VAT", "612,300 T"],
-  ];
-  return (
-    <section id="pricing" className="bg-onyx text-parchment py-24 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-20 items-center">
-        <div>
-          <h2 className="text-4xl md:text-5xl font-serif mb-8 leading-tight">
-            Transparent <br />
-            <i className="text-gold">Pricing Formula</i>
-          </h2>
-          <p className="text-parchment/60 mb-12 font-light leading-relaxed max-w-md">
-            Our live pricing engine ensures you pay exactly what the market dictates. Every piece
-            is valued dynamically from real-time gold rates, craftsmanship wages, and applicable tax.
-          </p>
-          <div className="space-y-4">
-            {rows.map(([label, val]) => (
-              <div key={label} className="flex justify-between items-center border-b border-parchment/10 pb-4">
-                <span className="text-[12px] uppercase tracking-widest text-parchment/40">{label}</span>
-                <span className="font-medium">{val}</span>
-              </div>
-            ))}
-            <div className="flex justify-between items-center pt-4">
-              <span className="text-[14px] uppercase tracking-[0.3em] text-gold font-bold">Total</span>
-              <span className="text-3xl font-serif">17,914,200 T</span>
-            </div>
-          </div>
-        </div>
-        <div className="relative">
-          <img
-            src={pricingViz}
-            alt="Live gold price analytics"
-            width={1200}
-            height={1200}
-            loading="lazy"
-            className="w-full aspect-square object-cover rounded-2xl outline outline-1 -outline-offset-1 outline-parchment/10"
-          />
-          <div className="absolute -bottom-6 -left-6 bg-gold p-8 hidden lg:block">
-            <p className="text-onyx font-bold uppercase tracking-widest text-xs">Trust Verified</p>
-            <p className="text-onyx/80 text-[10px] mt-2 leading-relaxed">
-              Certified by Central Union <br /> Standard G-842
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Story() {
-  const stats = [
-    ["100y", "Of Heritage"],
-    ["24K", "Investment Grade"],
-    ["8", "Master Goldsmiths"],
-    ["12k+", "Collectors Served"],
-  ];
-  return (
-    <section id="story" className="max-w-7xl mx-auto px-6 py-32 text-center">
-      <span className="text-[12px] uppercase tracking-[0.3em] text-gold mb-4 block">Our House</span>
-      <h2 className="text-4xl md:text-5xl font-serif max-w-3xl mx-auto leading-tight text-balance">
-        A century of goldsmithing, distilled into every gram we cast.
-      </h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20">
-        {stats.map(([n, l]) => (
-          <div key={l}>
-            <div className="font-serif text-4xl md:text-5xl text-gold">{n}</div>
-            <div className="text-[11px] uppercase tracking-widest text-onyx/50 mt-2">{l}</div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function Footer() {
-  return (
-    <footer className="bg-parchment border-t border-onyx/10 pt-24 pb-12">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-20">
-          <div className="col-span-2 md:col-span-1">
-            <h2 className="font-serif text-4xl mb-6 tracking-tighter">
-              AURUM<span className="text-gold">.</span>
-            </h2>
-            <p className="text-sm text-onyx/60 leading-relaxed font-light">
-              Defining luxury for the digital age. A comprehensive ecosystem for collectors and
-              connoisseurs of fine jewelry.
-            </p>
-          </div>
-          {[
-            { t: "Collection", l: ["All Collections", "Limited Edition", "Gold Coins", "Personalized"] },
-            { t: "Services", l: ["Repair & Polishing", "Custom Design", "Appraisal", "Global Shipping"] },
-          ].map((col) => (
-            <div key={col.t}>
-              <h5 className="text-[11px] uppercase tracking-widest font-bold mb-6">{col.t}</h5>
-              <ul className="space-y-4 text-sm text-onyx/60 font-light">
-                {col.l.map((i) => (
-                  <li key={i}>
-                    <a href="#" className="hover:text-gold">{i}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-          <div>
-            <h5 className="text-[11px] uppercase tracking-widest font-bold mb-6">Join the Circle</h5>
-            <p className="text-xs text-onyx/50 mb-6">Exclusive previews and market insights.</p>
-            <form className="flex border-b border-onyx/20 pb-2" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="email"
-                placeholder="Email address"
-                aria-label="Email address"
-                className="bg-transparent border-none outline-none text-sm w-full font-light"
-              />
-              <button className="text-[10px] uppercase font-bold tracking-widest text-gold">
-                Subscribe
-              </button>
-            </form>
-          </div>
-        </div>
-        <div className="flex flex-col md:flex-row justify-between items-center border-t border-onyx/5 pt-12 gap-4">
-          <p className="text-[10px] text-onyx/40 uppercase tracking-widest font-medium">
-            © 2026 Aurum Luxury Gold House
-          </p>
-          <div className="flex gap-6 text-[10px] uppercase tracking-widest text-onyx/40">
-            <a href="#">Privacy</a>
-            <a href="#">Terms</a>
-            <a href="#">Shipping</a>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
+function Showcase({ eyebrow, title, items, useImages = false }: { eyebrow: string; title: string; items: typeof products; useImages?: boolean }) {
+  return <section className="max-w-7xl mx-auto px-6 py-16 md:py-24"><div className="mb-10 flex items-end justify-between gap-6"><div><p className="text-[11px] uppercase tracking-[.32em] text-gold">{eyebrow}</p><h2 className="mt-3 font-serif text-4xl md:text-5xl">{title}</h2></div><Link to="/shop" className="shrink-0 border-b border-gold pb-1 text-[10px] font-bold uppercase tracking-widest text-gold">Shop all</Link></div><div className="grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-4 md:gap-x-7">{items.map((product, index) => <ProductCard key={product.id} product={product} image={useImages ? featuredImages[index % featuredImages.length] : undefined} />)}</div></section>;
 }
 
 function Home() {
-  return (
-    <div className="min-h-screen bg-parchment text-onyx selection:bg-gold/20">
-      <Ticker />
-      <Nav />
-      <Hero />
-      <Categories />
-      <PricingFormula />
-      <Story />
-      <Footer />
-    </div>
-  );
+  const newest = products.filter((product) => product.newest).slice(0, 4);
+  const bestsellers = products.filter((product) => product.bestseller || product.mostSold).slice(0, 4);
+  const recommended = products.filter((product) => product.aiRecommended).slice(0, 4);
+  const forYou = products.filter((product) => product.gender === "women" || product.gender === "unisex").slice(0, 4);
+  const completeTheLook = products.filter((product) => product.category === "necklaces" || product.category === "bracelets").slice(0, 4);
+  return <Shell>
+    <section className="relative min-h-[660px] overflow-hidden"><img src="/products/featured-1.jpg" alt="Fine gold jewelry collection" className="absolute inset-0 h-full w-full object-cover"/><div className="absolute inset-0 bg-gradient-to-r from-parchment via-parchment/80 to-parchment/10"/><div className="relative mx-auto flex min-h-[660px] max-w-7xl items-center px-6"><div className="max-w-2xl"><p className="text-[11px] uppercase tracking-[.38em] text-gold">Fine jewelry · Tehran</p><h1 className="mt-5 font-serif text-5xl leading-[1.03] md:text-7xl">Gold made to become <i>part of your story.</i></h1><p className="mt-7 max-w-lg text-base leading-relaxed text-onyx/70">Discover new pieces, investment gold, and personal heirlooms with clear, live-informed pricing.</p><div className="mt-9 flex flex-wrap gap-4"><Link to="/shop" className="bg-onyx px-7 py-4 text-[10px] font-bold uppercase tracking-widest text-parchment hover:bg-gold hover:text-onyx">Shop collection</Link><Link to="/signup" className="border border-onyx/30 px-7 py-4 text-[10px] font-bold uppercase tracking-widest hover:border-gold hover:text-gold">Book consultation</Link></div></div></div></section>
+    <Showcase eyebrow="Just arrived" title="Newest pieces" items={newest} useImages />
+    <section className="bg-onyx py-16 text-parchment md:py-24"><div className="max-w-7xl mx-auto px-6 grid gap-10 md:grid-cols-3">{[[ShieldCheck,"Certified quality","Every piece is checked for purity, finishing, and authenticity."],[Truck,"Secure delivery","Insured delivery and careful packaging from our workshop to your door."],[HeartHandshake,"Personal guidance","Real people help you choose, resize, or create a piece that fits." ]].map(([Icon,title,text]) => { const I = Icon as typeof ShieldCheck; return <div key={String(title)} className="border-t border-parchment/20 pt-6"><I className="text-gold" size={28}/><h2 className="mt-5 font-serif text-2xl">{String(title)}</h2><p className="mt-3 text-sm leading-relaxed text-parchment/65">{String(text)}</p></div>; })}</div></section>
+    <Showcase eyebrow="Loved by collectors" title="Most selling" items={bestsellers} />
+    <Showcase eyebrow="Curated by Aurum" title="Recommended for you" items={recommended} useImages />
+    <section className="bg-secondary py-16 md:py-24"><div className="max-w-7xl mx-auto px-6 grid gap-12 lg:grid-cols-[1fr_1.1fr]"><div><p className="text-[11px] uppercase tracking-[.32em] text-gold">Why Aurum</p><h2 className="mt-4 font-serif text-4xl md:text-5xl">More certainty in every carat.</h2><p className="mt-6 max-w-md leading-relaxed text-onyx/65">We combine craftsmanship, transparent pricing, and thoughtful aftercare so buying gold feels personal and clear.</p></div><div className="grid gap-px bg-onyx/10 sm:grid-cols-2">{[[Award,"Craftsmanship","Made and inspected by expert goldsmiths."],[BadgeCheck,"Transparent pricing","See weight, purity, and workmanship."],[Sparkles,"Custom service","Bring your own idea to our workshop."],[MapPin,"Local support","A dedicated team before and after purchase."]].map(([Icon,title,text]) => { const I = Icon as typeof Award; return <div key={String(title)} className="bg-secondary p-6"><I size={22} className="text-gold"/><h3 className="mt-4 font-serif text-xl">{String(title)}</h3><p className="mt-2 text-sm text-onyx/60">{String(text)}</p></div>; })}</div></div></section>
+    <Showcase eyebrow="Picked for you" title="Your everyday favorites" items={forYou} />
+    <Showcase eyebrow="Style it together" title="Complete the look" items={completeTheLook} useImages />
+    {/* <section className="max-w-7xl mx-auto px-6 py-16 md:py-24"><div className="grid gap-12 lg:grid-cols-[.85fr_1.15fr]"><div><p className="text-[11px] uppercase tracking-[.32em] text-gold">Answers</p><h2 className="mt-4 font-serif text-4xl">Frequently asked questions</h2><Link to="/faq" className="mt-7 inline-block border-b border-gold pb-1 text-[10px] font-bold uppercase tracking-widest text-gold">Read all FAQs</Link></div><div className="divide-y divide-onyx/10">{faqs.map(([question, answer]) => <details key={question} className="group py-5"><summary className="cursor-pointer list-none font-serif text-xl flex justify-between gap-4">{question}<span className="text-gold group-open:rotate-45">+</span></summary><p className="mt-3 max-w-xl text-sm leading-relaxed text-onyx/65">{answer}</p></details>)}</div></div></section> */}
+    {/* <section className="bg-onyx py-16 text-parchment md:py-24"><div className="max-w-7xl mx-auto px-6"><p className="text-[11px] uppercase tracking-[.32em] text-gold">From the journal</p><div className="mt-4 flex items-end justify-between"><h2 className="font-serif text-4xl md:text-5xl">Guides for a lasting collection</h2><Link to="/blog" className="hidden border-b border-gold pb-1 text-[10px] font-bold uppercase tracking-widest text-gold sm:block">Visit the journal</Link></div><div className="mt-12 grid gap-6 md:grid-cols-3">{posts.map(([type,title,read]) => <Link key={title} to="/blog" className="border-t border-parchment/20 pt-5 hover:text-gold"><p className="text-[10px] uppercase tracking-widest text-gold">{type}</p><h3 className="mt-4 font-serif text-2xl leading-tight">{title}</h3><p className="mt-5 text-xs text-parchment/55">{read}</p></Link>)}</div></div></section> */}
+  </Shell>;
 }
