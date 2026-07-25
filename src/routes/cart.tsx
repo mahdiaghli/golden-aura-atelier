@@ -1,0 +1,100 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Shell } from "@/components/site/Chrome";
+import { useCart } from "@/lib/cart";
+import { formatToman } from "@/lib/products";
+
+export const Route = createFileRoute("/cart")({
+  head: () => ({
+    meta: [
+      { title: "Your Bag — Aurum" },
+      { name: "description", content: "Review the pieces reserved in your Aurum bag before checkout." },
+      { property: "og:title", content: "Your Bag — Aurum" },
+      { property: "og:description", content: "Review your reserved Aurum pieces." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
+  component: CartPage,
+});
+
+function CartPage() {
+  const { items, subtotal, setQty, remove } = useCart();
+  const shipping = subtotal > 0 ? 750_000 : 0;
+  const total = subtotal + shipping;
+
+  return (
+    <Shell>
+      <section className="max-w-6xl mx-auto px-6 py-16">
+        <span className="text-[12px] uppercase tracking-[0.3em] text-gold">The Vault</span>
+        <h1 className="font-serif text-5xl mt-3 mb-12">Your Bag</h1>
+
+        {items.length === 0 ? (
+          <div className="border border-dashed border-onyx/15 py-24 text-center">
+            <p className="font-serif text-2xl">Your bag is quiet.</p>
+            <p className="text-onyx/60 mt-2">Reserve a piece from the collection to begin.</p>
+            <Link to="/shop" className="inline-block mt-8 bg-onyx text-parchment px-10 py-4 text-[11px] uppercase tracking-[0.2em] font-bold hover:bg-gold hover:text-onyx transition-all">
+              Enter the collection
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-12">
+            <ul className="divide-y divide-onyx/10">
+              {items.map(({ product, qty, lineTotal }) => (
+                <li key={product.id} className="py-6 flex gap-6 items-start">
+                  <Link to="/shop/$id" params={{ id: product.id }} className="w-28 aspect-square bg-secondary overflow-hidden shrink-0">
+                    <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                  </Link>
+                  <div className="flex-1">
+                    <Link to="/shop/$id" params={{ id: product.id }} className="font-serif text-xl hover:text-gold">
+                      {product.name}
+                    </Link>
+                    <p className="text-[10px] uppercase tracking-widest text-onyx/50 mt-1">
+                      {product.karat} · {product.weight}g · SKU {product.sku}
+                    </p>
+                    <div className="flex items-center gap-6 mt-4">
+                      <div className="flex items-center border border-onyx/15">
+                        <button onClick={() => setQty(product.id, qty - 1)} className="w-8 h-9 hover:bg-onyx/5">−</button>
+                        <span className="w-8 text-center text-sm">{qty}</span>
+                        <button onClick={() => setQty(product.id, qty + 1)} className="w-8 h-9 hover:bg-onyx/5">+</button>
+                      </div>
+                      <button onClick={() => remove(product.id)} className="text-[10px] uppercase tracking-widest text-onyx/50 hover:text-gold">
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                  <p className="font-medium whitespace-nowrap">{formatToman(lineTotal)}</p>
+                </li>
+              ))}
+            </ul>
+
+            <aside className="bg-secondary p-8 h-fit sticky top-28">
+              <h4 className="text-[11px] uppercase tracking-widest font-bold mb-6">Order Summary</h4>
+              <div className="space-y-3 text-sm">
+                <Row label="Subtotal" value={formatToman(subtotal)} />
+                <Row label="Insured shipping" value={formatToman(shipping)} />
+                <div className="flex justify-between pt-4 border-t border-onyx/10 text-lg font-serif">
+                  <span>Total</span>
+                  <span>{formatToman(total)}</span>
+                </div>
+              </div>
+              <Link to="/checkout" className="mt-8 block text-center bg-onyx text-parchment py-4 text-[11px] uppercase tracking-[0.2em] font-bold hover:bg-gold hover:text-onyx transition-all">
+                Proceed to checkout
+              </Link>
+              <Link to="/shop" className="mt-4 block text-center text-[11px] uppercase tracking-widest text-onyx/60 hover:text-gold">
+                Continue browsing
+              </Link>
+            </aside>
+          </div>
+        )}
+      </section>
+    </Shell>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between">
+      <span className="text-onyx/60">{label}</span>
+      <span>{value}</span>
+    </div>
+  );
+}
