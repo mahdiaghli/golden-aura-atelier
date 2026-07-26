@@ -52,6 +52,11 @@ function ShopPage() {
       if (search.gemstone !== "all" && (p.gemstone || "none") !== search.gemstone) return false;
       if (search.style !== "all" && (p.style || "classic") !== search.style) return false;
       if (search.occasion !== "all" && (p.occasion || "everyday") !== search.occasion) return false;
+      if (search.stock === "in-stock" && p.inStock === false) return false;
+      if (search.stock === "made-to-order" && !p.madeToOrder) return false;
+      if (p.weight < search.minWeight || p.weight > search.maxWeight) return false;
+      const makingPct = p.makingPct * 100;
+      if (makingPct < search.minMaking || makingPct > search.maxMaking) return false;
       const total = priceBreakdown(p).total;
       if (total < search.min || total > search.max) return false;
       if (search.q && !p.name.toLowerCase().includes(search.q.toLowerCase())) return false;
@@ -362,6 +367,5 @@ function RadioRow({ label, checked, onChange }: { label: string; checked: boolea
     </button>
   );
 }
-
 
 

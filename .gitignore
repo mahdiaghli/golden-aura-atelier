@@ -33,3 +33,15 @@ dist-ssr
 
 /rebuilt.File1405-04-23/
 /AppZargarData_1405-04-23/
+
+.agents
+.claude
+.codex
+.cursor
+.github
+.lovable
+.opencode
+AppZargarData_log.ldf
+AppZargarData.mdf
+
+/graphify-out/

@@ -2,7 +2,6 @@
 import catNecklaces from "@/assets/cat-necklaces.jpg";
 import catBracelets from "@/assets/cat-bracelets.jpg";
 import catBullion from "@/assets/cat-bullion.jpg";
-import heroRing from "@/assets/hero-ring.jpg";
 
 export type Karat = "18K" | "21K" | "22K" | "24K";
 export type Category = "rings" | "necklaces" | "bracelets" | "bullion";
@@ -77,6 +76,13 @@ const imgFor: Record<Category, string> = {
   bullion: catBullion,
 };
 
+// These files are copied from rebuilt.File1405-04-23 into public/products/catalog.
+// Keeping the image list next to the seed order gives every product a stable,
+// distinct image while the catalog is still backed by the local SQL seed data.
+const catalogImages = Array.from({ length: 22 }, (_, index) =>
+  `/products/catalog/product-${String(index + 1).padStart(2, "0")}.webp`,
+);
+
 const seed: Array<Omit<Product, "gallery" | "image" | "sku">> = [
   { id: "aurelia-solitaire", name: "Aurelia Solitaire Ring", category: "rings", karat: "18K", weight: 4.85, makingPct: 0.07, gender: "women", gemstone: "Diamond", gemstoneType: "diamond", color: "white", style: "classic", occasion: "engagement", description: "A single-stone solitaire ring hand-cast in 18K white gold with a G-VS1 brilliant.", customizable: true, sizeAdjustable: true, warranty: "Lifetime warranty", returnable: true, rating: 4.8, reviews: 245, bestseller: true, aiRecommended: true },
   { id: "helios-signet", name: "Helios Signet Ring", category: "rings", karat: "22K", weight: 12.4, makingPct: 0.09, gender: "men", color: "yellow", style: "luxury", occasion: "gift", description: "Weighty engraved signet, drawn from our Persian Archive collection.", customizable: true, warranty: "Lifetime warranty", returnable: true, rating: 4.7, reviews: 128, mostSold: true },
@@ -105,8 +111,8 @@ const seed: Array<Omit<Product, "gallery" | "image" | "sku">> = [
 
 export const products: Product[] = seed.map((p, i) => ({
   ...p,
-  image: p.category === "rings" && i === 0 ? heroRing : imgFor[p.category],
-  gallery: [imgFor[p.category], p.category === "rings" ? heroRing : imgFor[p.category]],
+  image: catalogImages[i] ?? imgFor[p.category],
+  gallery: [catalogImages[i] ?? imgFor[p.category], catalogImages[(i + 1) % catalogImages.length] ?? imgFor[p.category]],
   sku: `AU-${p.category.slice(0, 2).toUpperCase()}-${String(1000 + i)}`,
 }));
 
@@ -117,5 +123,3 @@ export const categories: { slug: Category | "all"; label: string }[] = [
   { slug: "bracelets", label: "Bracelets" },
   { slug: "bullion", label: "Bullion & Coins" },
 ];
-
-
