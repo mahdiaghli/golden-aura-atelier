@@ -1,0 +1,26 @@
+import type { ProductTranslation } from "../../types";
+
+export const productsFa: Record<string, ProductTranslation> = {
+  "aurelia-solitaire": { name: "انگشتر سولitaire آورلیا", description: "انگشتر سولitaire تک‌سنگ ریخته‌گری دستی در طلای سفید ۱۸ عیار با برilliant G-VS1.", warranty: "گارانتی مادام‌العمر" },
+  "helios-signet": { name: "انگشتر مُهر هلیوس", description: "مُهر حکاکی‌شده سنگین، از مجموعه آرشیو ایرانی ما.", warranty: "گارانتی مادام‌العمر" },
+  "luna-chain": { name: "زنجیر بیزانسی لونا", description: "زنجیر پیوندی بیزانسی مجسمه، با ساتن‌براش و قلاب دست‌پرداخت.", warranty: "گارانتی ۲ ساله" },
+  "sirocco-collar": { name: "گردنبند سیروکو", description: "گردنبند سرمایه‌گذاری در طلای خالص ۲۴ عیار — وزن میراثی، فرم معاصر.", warranty: "گارانتی مادام‌العمر" },
+  "atlas-cuff": { name: "دستبند مجسمه اطلس", description: "دستبند معماری با وجوه چکش‌کاری — بدون قفل، فنری برای تناسب.", warranty: "گارانتی ۲ ساله" },
+  "meridian-bracelet": { name: "دستبند تنیس Meridian", description: "۲۴ برilliant در طلای سفید bezel-cut با قلاب مخفی.", warranty: "گارانتی مادام‌العمر" },
+  "ingot-100": { name: "شمش Aurum ۱۰۰ گرمی", description: "شمش سرمایه‌گذاری ریخته‌گری، عیار ۹۹۹.۹. شماره‌سری با گواهی آزمایش.", warranty: "ضمانت اصالت" },
+  "ingot-50": { name: "شمش Aurum ۵۰ گرمی", description: "شمش ۵۰ گرمی سریال‌دار با کارت آزمایش ضد دستکاری.", warranty: "ضمانت اصالت" },
+  "sovereign-coin": { name: "سکه Sovereign", description: "سکه ضرب‌شده ۲۲ عیار — سکه کلکسیونی کلاسیک، کپسول مهر و موم.", warranty: "ضمانت اصالت" },
+  "nova-band": { name: "بند Nova Eternity", description: "بند eternity تمام‌گرد با ۳۰ برilliant دست‌نشان.", warranty: "گارانتی مادام‌العمر" },
+  "cyrus-cross": { name: "آویز صلیب Cyrus", description: "آویز صلیب روی زنجیر ونیزی، مات‌پرداخت.", warranty: "گارانتی مادام‌العمر" },
+  "orbit-cuff-m": { name: "دستبند Orbit — باریک", description: "دستبند معماری باریک، رویه براق، داخل ساتن.", warranty: "گارانتی ۲ ساله" },
+  "ember-ring-gold": { name: "انگشتر Ember طلا", description: "انگشتر مینیمال ظریف در طلای زرد گرم.", warranty: "گارانتی ۱ ساله" },
+  "grace-pendant": { name: "گردنبند آویز Grace", description: "آویز ظریف روی زنجیر نازک، عالی برای لایه‌بندی.", warranty: "گارانتی ۱ ساله" },
+  "simple-band": { name: "بند طلای ساده", description: "انگشتر بند بی‌زمان، عالی برای استک یا تنها.", warranty: "گارانتی مادام‌العمر" },
+  "rose-gold-cuff": { name: "دستبند رزگلد", description: "النگوی رزگلد معاصر با پرداخت صاف.", warranty: "گارانتی ۱ ساله" },
+  "gold-snake-chain": { name: "زنجیر مارپیچ طلا", description: "زنجیر مارپیچ همه‌کاره، پایه عالی برای آویز.", warranty: "گارانتی ۱ ساله" },
+  "dainty-ring-small": { name: "مجموعه انگشتر Dainty", description: "انگشتر ظریف قابل استک در طلای سفید.", warranty: "گارانتی مادام‌العمر" },
+  "comfort-band-men": { name: "بند Comfort Fit", description: "بند راحت روزمره برای آقایان با لبه‌های گرد.", warranty: "گارانتی مادام‌العمر" },
+  "delicate-ankle": { name: "دستبند مچی ظریف", description: "دستبند مچی سبک با قلاب ظریف.", warranty: "گارانتی ۱ ساله" },
+  "gold-locket": { name: "آویز طلای Memory", description: "آویز لocket لولایی برای خاطرات گران‌بها، شامل زنجیر.", warranty: "گارانتی ۱ ساله" },
+  "twisted-band": { name: "بند طلای پیچ‌خورده", description: "طراحی پیچ‌خورده مدرن در طلای دو رنگ.", warranty: "گارانتی مادام‌العمر" },
+};

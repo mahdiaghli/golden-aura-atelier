@@ -1,55 +1,54 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Shell } from "@/components/site/Chrome";
 import heroRing from "@/assets/hero-ring.jpg";
+import { useI18n } from "@/lib/i18n/context";
 
 export const Route = createFileRoute("/about")({
   component: AboutPage,
-  head: () => ({
-    meta: [
-      { title: "About Aurum — Fine Gold Jewelry House" },
-      { name: "description", content: "Discover Aurum's heritage, craftsmanship, and transparent gold philosophy." },
-    ],
-  }),
 });
 
 function AboutPage() {
-  const values = [
-    ["Heritage", "Founded in Tehran and refined for modern collectors, our house brings a century of goldsmithing into every contemporary piece."],
-    ["Transparency", "Every price is calculated around live gold rate, making cost, and VAT so you see the exact value of your purchase."],
-    ["Craftsmanship", "Each item is hand-finished by master artisans, with custom commissions available for private clients."],
-  ];
+  const { messages } = useI18n();
+  const about = messages.about as {
+    eyebrow: string;
+    title: string;
+    intro: string;
+    ctaShop: string;
+    ctaContact: string;
+    imageAlt: string;
+    values: Record<string, { title: string; body: string }>;
+  };
+  const values = Object.values(about.values);
 
   return (
     <Shell>
-      <section className="max-w-7xl mx-auto px-6 py-16 lg:py-24">
-        <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] items-center">
+      <section className="mx-auto max-w-7xl px-6 py-16 lg:py-24">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
-            <span className="text-[12px] uppercase tracking-[0.35em] text-gold">About us</span>
-            <h1 className="font-serif text-4xl md:text-5xl mt-4 leading-tight">A house shaped by heritage, precision, and trust.</h1>
-            <p className="mt-6 text-lg leading-relaxed text-onyx/70 font-light">
-              Aurum blends Persian goldsmithing traditions with a contemporary luxury experience, offering collectors and investors a transparent path into fine jewelry and certified bullion.
-            </p>
+            <span className="text-[12px] uppercase tracking-[0.35em] text-gold">{about.eyebrow}</span>
+            <h1 className="mt-4 font-serif text-4xl leading-tight md:text-5xl">{about.title}</h1>
+            <p className="mt-6 text-lg font-light leading-relaxed text-onyx/70">{about.intro}</p>
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link to="/shop" className="bg-onyx text-parchment px-8 py-4 text-[11px] uppercase tracking-[0.2em] font-bold hover:bg-gold hover:text-onyx transition-all">
-                Explore collection
+              <Link to="/shop" className="bg-onyx px-8 py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-parchment transition-all hover:bg-gold hover:text-onyx">
+                {about.ctaShop}
               </Link>
-              <Link to="/contact" className="border-b border-onyx py-2 text-[11px] uppercase tracking-[0.2em] font-bold hover:text-gold hover:border-gold transition-all">
-                Contact us
+              <Link to="/contact" className="border-b border-onyx py-2 text-[11px] font-bold uppercase tracking-[0.2em] transition-all hover:border-gold hover:text-gold">
+                {about.ctaContact}
               </Link>
             </div>
           </div>
           <div className="overflow-hidden rounded-[2rem] border border-onyx/10 bg-secondary">
-            <img src={heroRing} alt="Aurum gold jewelry in warm light" className="w-full aspect-[4/5] object-cover" />
+            <img src={heroRing} alt={about.imageAlt} className="aspect-[4/5] w-full object-cover" />
           </div>
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 pb-24">
+      <section className="mx-auto max-w-7xl px-6 pb-24">
         <div className="grid gap-6 md:grid-cols-3">
-          {values.map(([title, copy]) => (
-            <div key={title} className="rounded-[1.5rem] border border-onyx/10 bg-white/70 p-8">
-              <h3 className="font-serif text-2xl">{title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-onyx/70">{copy}</p>
+          {values.map((item) => (
+            <div key={item.title} className="rounded-[1.5rem] border border-onyx/10 bg-white/70 p-8">
+              <h3 className="font-serif text-2xl">{item.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-onyx/70">{item.body}</p>
             </div>
           ))}
         </div>

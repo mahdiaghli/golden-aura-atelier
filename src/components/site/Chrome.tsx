@@ -2,29 +2,12 @@ import { Link } from "@tanstack/react-router";
 import { ChevronDown, Instagram, MapPin, Menu, Phone, Search, Send, ShoppingBag, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useCart } from "@/lib/cart";
+import { useI18n } from "@/lib/i18n/context";
+import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { SHOP_SEARCH_DEFAULT } from "@/lib/shop-search";
 
 const NESHAN_URL =
   "https://neshan.org/maps/?q=%D9%85%D8%B4%D9%87%D8%AF%20%D8%A8%DB%8C%D9%86%20%D8%AD%D8%B1%207%20%D9%88%209%20%D8%AC%D9%86%D8%A8%20%D8%AF%D8%B1%D9%85%D8%A7%D9%86%DA%AF%D8%A7%D9%87%20%D8%B3%D9%85%D8%A7%20%D8%B7%D9%84%D8%A7%D8%AC%D8%A7%D8%AA%20%D8%B9%D9%82%D9%84%DB%8C";
-
-const serviceAnchors = [
-  { label: "Repair", hash: "repair" },
-  { label: "Resizing", hash: "resizing" },
-  { label: "Custom design", hash: "custom" },
-  { label: "Trade-in and exchange", hash: "trade-in" },
-  { label: "Investment consultation", hash: "investment" },
-  { label: "Insurance support", hash: "insurance" },
-];
-
-const megaMenu = [
-  { label: "Products", links: ["Ring", "Wedding Ring", "Engagement Ring", "Necklace", "Chain", "Bracelet", "Pendant", "Earrings"] },
-  { label: "Gemstones", links: ["Diamond", "Ruby", "Emerald", "Sapphire", "Pearl", "Topaz", "Amethyst"] },
-  { label: "Investment", links: ["Bullion / Bar", "Coin", "Melted Gold", "Second-Hand Gold"] },
-  { label: "Gifts", links: ["Birthday Gift", "Anniversary Gift", "Wedding Gift", "Graduation Gift"] },
-  { label: "Wedding", links: ["Ring", "Bridal Set", "Couple's Set"] },
-  { label: "Services", links: serviceAnchors.map((item) => item.label) },
-  { label: "Resources", links: ["Buying Guide", "Blog", "FAQ"] },
-] as const;
 
 function buildShopSearch(item: string) {
   const categoryMap: Record<string, "rings" | "necklaces" | "bracelets" | "bullion"> = {
@@ -45,19 +28,20 @@ function buildShopSearch(item: string) {
 }
 
 export function Ticker() {
+  const { messages } = useI18n();
   const items = [
-    { label: "Live 18K Gold", value: "3,452,000 Toman", dot: "bg-emerald-500 animate-pulse" },
-    { label: "Global Spot", value: "$2,042.40", dot: "bg-gold-soft" },
-    { label: "Market Status", value: "Open", dot: "bg-gold" },
-    { label: "24K Gold", value: "4,602,000 Toman", dot: "bg-emerald-500" },
-    { label: "Making Rate", value: "7% base", dot: "bg-gold-soft" },
+    { ...messages.ticker.live18k, dot: "bg-emerald-500 animate-pulse" },
+    { ...messages.ticker.globalSpot, dot: "bg-gold-soft" },
+    { ...messages.ticker.marketStatus, dot: "bg-gold" },
+    { ...messages.ticker.gold24k, dot: "bg-emerald-500" },
+    { ...messages.ticker.makingRate, dot: "bg-gold-soft" },
   ];
 
   return (
     <div className="overflow-hidden whitespace-nowrap border-b border-gold/30 bg-onyx py-2 text-parchment">
       <div className="flex w-max animate-marquee gap-12 px-6 text-[10px] font-medium uppercase tracking-[0.2em]">
         {[...items, ...items].map((item, index) => (
-          <div key={index} className="flex shrink-0 items-center gap-2">
+          <div key={`${item.label}-${index}`} className="flex shrink-0 items-center gap-2">
             <span className={`h-1.5 w-1.5 rounded-full ${item.dot}`} />
             {item.label}: {item.value}
           </div>
@@ -69,22 +53,48 @@ export function Ticker() {
 
 export function Nav() {
   const { count } = useCart();
+  const { t } = useI18n();
   const [open, setOpen] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const serviceAnchors = useMemo(
+    () => [
+      { label: t("nav.services.repair"), hash: "repair" },
+      { label: t("nav.services.resizing"), hash: "resizing" },
+      { label: t("nav.services.customDesign"), hash: "custom" },
+      { label: t("nav.services.tradeIn"), hash: "trade-in" },
+      { label: t("nav.services.investment"), hash: "investment" },
+      { label: t("nav.services.insurance"), hash: "insurance" },
+    ],
+    [t],
+  );
+
   const primaryLinks = useMemo(
     () => [
-      { to: "/", label: "Home" },
-      { to: "/prices", label: "Prices" },
-      { to: "/services", label: "Services" },
+      { to: "/", label: t("nav.home") },
+      { to: "/prices", label: t("nav.prices") },
+      { to: "/services", label: t("nav.services") },
     ],
-    [],
+    [t],
+  );
+
+  const megaMenu = useMemo(
+    () => [
+      { label: t("nav.mega.products"), links: ["Ring", "Wedding Ring", "Engagement Ring", "Necklace", "Chain", "Bracelet", "Pendant", "Earrings"] },
+      { label: t("nav.mega.gemstones"), links: [t("nav.mega.diamond"), t("nav.mega.ruby"), t("nav.mega.emerald"), t("nav.mega.sapphire"), t("nav.mega.pearl"), t("nav.mega.topaz"), t("nav.mega.amethyst")] },
+      { label: t("nav.mega.investment"), links: ["Bullion / Bar", "Coin", t("nav.mega.meltedGold"), t("nav.mega.secondHandGold")] },
+      { label: t("nav.mega.gifts"), links: [t("nav.mega.birthdayGift"), t("nav.mega.anniversaryGift"), t("nav.mega.weddingGift"), t("nav.mega.graduationGift")] },
+      { label: t("nav.mega.wedding"), links: ["Ring", t("nav.mega.bridalSet"), t("nav.mega.couplesSet")] },
+      { label: t("nav.services"), links: serviceAnchors.map((item) => item.label) },
+      { label: t("nav.mega.resources"), links: [t("nav.mega.buyingGuide"), t("nav.mega.blog"), t("nav.mega.faq")] },
+    ],
+    [serviceAnchors, t],
   );
 
   return (
     <nav className="sticky top-0 z-50 border-b border-onyx/10 bg-parchment/95 backdrop-blur-md" onMouseLeave={() => setOpen(null)}>
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        <button className="p-2 -ml-2 lg:hidden" onClick={() => setMobileOpen((value) => !value)} aria-label="Toggle navigation">
+        <button className="-ml-2 p-2 lg:hidden" onClick={() => setMobileOpen((value) => !value)} aria-label={t("nav.ariaToggle")}>
           {mobileOpen ? <X size={21} /> : <Menu size={22} />}
         </button>
 
@@ -95,13 +105,16 @@ export function Nav() {
         </Link>
 
         <div className="flex items-center gap-2 sm:gap-5">
-          <Link to="/shop" search={SHOP_SEARCH_DEFAULT} aria-label="Search collection" className="rounded-full p-2 transition-colors hover:text-gold">
+          <div className="hidden sm:block">
+            <LanguageSwitcher compact />
+          </div>
+          <Link to="/shop" search={SHOP_SEARCH_DEFAULT} aria-label={t("nav.ariaSearch")} className="rounded-full p-2 transition-colors hover:text-gold">
             <Search size={19} />
           </Link>
           <Link to="/profile" className="hidden text-[11px] font-semibold uppercase tracking-widest text-gold sm:block">
-            Account
+            {t("nav.account")}
           </Link>
-          <Link to="/cart" className="relative rounded-full p-1" aria-label="Cart">
+          <Link to="/cart" className="relative rounded-full p-1" aria-label={t("nav.ariaCart")}>
             {count > 0 && (
               <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[9px] font-bold text-parchment">
                 {count}
@@ -125,24 +138,24 @@ export function Nav() {
               </button>
 
               {open === menu.label && (
-                <div className="absolute left-1/2 top-12 w-[min(760px,90vw)] -translate-x-1/2 border border-onyx/10 bg-parchment p-6 shadow-[0_24px_50px_rgba(0,0,0,0.08)]">
-                  <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+                <div className="absolute left-1/2 top-full z-50 mt-2 w-[min(88vw,58rem)] -translate-x-1/2 rounded-[2rem] border border-onyx/10 bg-parchment p-6 shadow-[0_30px_80px_rgba(15,15,15,0.12)]">
+                  <div className="grid gap-4 md:grid-cols-3">
                     {menu.links.map((item) =>
-                      menu.label === "Services" ? (
+                      menu.label === t("nav.services") ? (
                         <Link
                           key={item}
                           to="/services"
-                          hash={serviceAnchors.find((service) => service.label === item)?.hash}
-                          className="group rounded-2xl border border-onyx/10 bg-white/70 p-4 text-left transition-colors hover:border-gold"
+                          search={undefined}
+                          className="group rounded-2xl border border-onyx/10 bg-white/70 p-4 transition-colors hover:border-gold"
                         >
-                          <p className="text-[10px] uppercase tracking-[0.22em] text-onyx/40">Service</p>
+                          <p className="text-[10px] uppercase tracking-[0.22em] text-onyx/40">{t("nav.mega.serviceLabel")}</p>
                           <p className="mt-2 font-serif text-xl group-hover:text-gold">{item}</p>
                         </Link>
-                      ) : menu.label === "Resources" ? (
+                      ) : menu.label === t("nav.mega.resources") ? (
                         <Link
                           key={item}
-                          to={item === "Blog" ? "/blog" : item === "FAQ" ? "/faq" : "/shop"}
-                          search={item === "Buying Guide" ? { ...SHOP_SEARCH_DEFAULT, q: item } : undefined}
+                          to={item === t("nav.mega.blog") ? "/blog" : item === t("nav.mega.faq") ? "/faq" : "/shop"}
+                          search={item === t("nav.mega.buyingGuide") ? { ...SHOP_SEARCH_DEFAULT, q: item } : undefined}
                           className="rounded-2xl border border-onyx/10 bg-white/70 p-4 transition-colors hover:border-gold"
                         >
                           <p className="font-serif text-xl hover:text-gold">{item}</p>
@@ -169,6 +182,10 @@ export function Nav() {
       {mobileOpen && (
         <div className="border-t border-onyx/8 bg-parchment lg:hidden">
           <div className="mx-auto grid max-w-7xl gap-4 px-6 py-5">
+            <div className="flex items-center justify-between gap-3">
+              <LanguageSwitcher compact />
+            </div>
+
             <div className="flex flex-wrap gap-2">
               {primaryLinks.map((link) => (
                 <Link
@@ -184,13 +201,13 @@ export function Nav() {
 
             <div className="grid gap-2">
               <Link to="/contact" onClick={() => setMobileOpen(false)} className="rounded-2xl border border-onyx/10 px-4 py-3 text-sm transition-colors hover:border-gold hover:text-gold">
-                Contact
+                {t("nav.contact")}
               </Link>
               <Link to="/prices" onClick={() => setMobileOpen(false)} className="rounded-2xl border border-onyx/10 px-4 py-3 text-sm transition-colors hover:border-gold hover:text-gold">
-                Prices
+                {t("nav.prices")}
               </Link>
               <Link to="/services" onClick={() => setMobileOpen(false)} className="rounded-2xl border border-onyx/10 px-4 py-3 text-sm transition-colors hover:border-gold hover:text-gold">
-                Services
+                {t("nav.services")}
               </Link>
             </div>
 
@@ -209,20 +226,24 @@ export function Nav() {
 }
 
 function StoreMap({ compact = false }: { compact?: boolean }) {
+  const { t } = useI18n();
+
   return (
     <div className={`overflow-hidden border border-onyx/10 bg-white/70 ${compact ? "rounded-[1.5rem]" : "rounded-[2rem]"}`}>
       <div className="border-b border-onyx/10 px-5 py-4">
-        <p className="text-[10px] uppercase tracking-[0.24em] text-onyx/45">Our location</p>
-        <p className="mt-2 font-serif text-xl">Visit our Mashhad store</p>
+        <p className="text-[10px] uppercase tracking-[0.24em] text-onyx/45">{t("footer.locationEyebrow")}</p>
+        <p className="mt-2 font-serif text-xl">{t("footer.locationTitle")}</p>
       </div>
       <div className={compact ? "h-[260px]" : "h-[360px]"}>
-        <iframe title="Aghli Gold location map" src={NESHAN_URL} className="h-full w-full" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+        <iframe title={t("footer.mapTitle")} src={NESHAN_URL} className="h-full w-full" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
       </div>
     </div>
   );
 }
 
 export function Footer() {
+  const { t } = useI18n();
+
   return (
     <footer className="border-t border-onyx/10 bg-parchment pb-10 pt-16">
       <div className="mx-auto max-w-7xl px-6">
@@ -231,90 +252,44 @@ export function Footer() {
             <h2 className="font-serif text-4xl tracking-tighter">
               AGHLI<span className="text-gold">.</span>
             </h2>
-            <p className="mt-5 max-w-xs text-sm leading-relaxed text-onyx/60">
-              Gold jewelry, investment gold, and personal service from Aghli Gold.
-            </p>
+            <p className="mt-5 max-w-xs text-sm leading-relaxed text-onyx/60">{t("footer.tagline")}</p>
             <div className="mt-6 flex gap-4 text-onyx/60">
-              <a aria-label="Telegram" href="https://t.me/aghligold" target="_blank" rel="noreferrer" className="hover:text-gold">
+              <a aria-label={t("footer.ariaTelegram")} href="https://t.me/aghligold" target="_blank" rel="noreferrer" className="hover:text-gold">
                 <Send size={18} />
               </a>
-              <a aria-label="Instagram" href="https://instagram.com/aghligold/" target="_blank" rel="noreferrer" className="hover:text-gold">
+              <a aria-label={t("footer.ariaInstagram")} href="https://instagram.com/aghligold/" target="_blank" rel="noreferrer" className="hover:text-gold">
                 <Instagram size={18} />
               </a>
             </div>
           </div>
 
           <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-widest">Contact us</h3>
+            <h3 className="text-[11px] font-bold uppercase tracking-widest">{t("footer.contactTitle")}</h3>
             <div className="mt-5 space-y-3 text-sm text-onyx/60">
-              <a className="flex gap-2 hover:text-gold" href="tel:09153145726">
-                <Phone size={15} />
-                09153145726
-              </a>
-              <a className="flex gap-2 hover:text-gold" href="tel:05133762430">
-                <Phone size={15} />
-                05133762430
-              </a>
-              <a className="flex gap-2 hover:text-gold" href="https://t.me/aaadmin_aghli" target="_blank" rel="noreferrer">
-                <Send size={15} />
-                @aaadmin_aghli
-              </a>
+              <a className="flex gap-2 hover:text-gold" href="tel:09153145726"><Phone size={15} />09153145726</a>
+              <a className="flex gap-2 hover:text-gold" href="tel:05133762430"><Phone size={15} />05133762430</a>
+              <a className="flex gap-2 hover:text-gold" href="https://t.me/aaadmin_aghli" target="_blank" rel="noreferrer"><Send size={15} />@aaadmin_aghli</a>
+              <a className="flex gap-2 hover:text-gold" href={NESHAN_URL} target="_blank" rel="noreferrer"><MapPin size={15} />{t("footer.openMap")}</a>
             </div>
           </div>
 
           <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-widest">Explore</h3>
+            <h3 className="text-[11px] font-bold uppercase tracking-widest">{t("footer.exploreTitle")}</h3>
             <div className="mt-5 space-y-3 text-sm text-onyx/60">
-              <Link to="/" className="block hover:text-gold">
-                Home
-              </Link>
-              <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="block hover:text-gold">
-                Shop
-              </Link>
-              <Link to="/prices" className="block hover:text-gold">
-                Market prices
-              </Link>
-              <Link to="/services" className="block hover:text-gold">
-                Services
-              </Link>
-              <Link to="/contact" className="block hover:text-gold">
-                Contact
-              </Link>
+              <Link to="/shop" className="block hover:text-gold">{t("footer.exploreShop")}</Link>
+              <Link to="/prices" className="block hover:text-gold">{t("footer.exploreMarketPrices")}</Link>
+              <Link to="/contact" className="block hover:text-gold">{t("nav.contact")}</Link>
             </div>
           </div>
 
-          <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-widest">Services</h3>
-            <div className="mt-5 space-y-3 text-sm text-onyx/60">
-              <Link to="/services" hash="repair" className="block hover:text-gold">
-                Repair
-              </Link>
-              <Link to="/services" hash="resizing" className="block hover:text-gold">
-                Resizing
-              </Link>
-              <Link to="/services" hash="custom" className="block hover:text-gold">
-                Custom design
-              </Link>
-              <Link to="/services" hash="trade-in" className="block hover:text-gold">
-                Trade-in and exchange
-              </Link>
-              <Link to="/services" hash="investment" className="block hover:text-gold">
-                Investment consultation
-              </Link>
-            </div>
-          </div>
-
-          <div className="min-w-0">
+          <div className="lg:col-span-2">
             <StoreMap compact />
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 border-t border-onyx/10 pt-6 text-[10px] uppercase tracking-[0.18em] text-onyx/45 md:flex-row md:items-center md:justify-between">
-          <p>All rights reserved</p>
-          <a href={NESHAN_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 hover:text-gold">
-            <MapPin size={14} />
-            Open in Neshan map
-          </a>
+        <div className="flex flex-col gap-4 border-t border-onyx/10 pt-6 text-xs text-onyx/50 sm:flex-row sm:items-center sm:justify-between">
+          <p>© AGHLI. {t("footer.copyright")}.</p>
+          <LanguageSwitcher />
         </div>
       </div>
     </footer>
@@ -323,10 +298,10 @@ export function Footer() {
 
 export function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-parchment text-onyx selection:bg-gold/20">
+    <div className="min-h-screen bg-parchment text-onyx">
       <Ticker />
       <Nav />
-      {children}
+      <main>{children}</main>
       <Footer />
     </div>
   );

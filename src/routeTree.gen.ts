@@ -25,7 +25,6 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as Under1000RouteImport } from './routes/under-1000'
 import { Route as WhyUsRouteImport } from './routes/why-us'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
-import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ShopIdRouteImport } from './routes/shop.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -108,11 +107,6 @@ const AdminOrdersRoute = AdminOrdersRouteImport.update({
   path: '/admin/orders',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => BlogRoute,
-} as any)
 const ShopIdRoute = ShopIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -122,7 +116,7 @@ const ShopIdRoute = ShopIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/blog': typeof BlogRouteWithChildren
+  '/blog': typeof BlogRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
@@ -136,13 +130,12 @@ export interface FileRoutesByFullPath {
   '/under-1000': typeof Under1000Route
   '/why-us': typeof WhyUsRoute
   '/admin/orders': typeof AdminOrdersRoute
-  '/blog/$slug': typeof BlogSlugRoute
   '/shop/$id': typeof ShopIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/blog': typeof BlogRouteWithChildren
+  '/blog': typeof BlogRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
@@ -156,14 +149,13 @@ export interface FileRoutesByTo {
   '/under-1000': typeof Under1000Route
   '/why-us': typeof WhyUsRoute
   '/admin/orders': typeof AdminOrdersRoute
-  '/blog/$slug': typeof BlogSlugRoute
   '/shop/$id': typeof ShopIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/blog': typeof BlogRouteWithChildren
+  '/blog': typeof BlogRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
@@ -177,7 +169,6 @@ export interface FileRoutesById {
   '/under-1000': typeof Under1000Route
   '/why-us': typeof WhyUsRoute
   '/admin/orders': typeof AdminOrdersRoute
-  '/blog/$slug': typeof BlogSlugRoute
   '/shop/$id': typeof ShopIdRoute
 }
 export interface FileRouteTypes {
@@ -199,7 +190,6 @@ export interface FileRouteTypes {
     | '/under-1000'
     | '/why-us'
     | '/admin/orders'
-    | '/blog/$slug'
     | '/shop/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -219,7 +209,6 @@ export interface FileRouteTypes {
     | '/under-1000'
     | '/why-us'
     | '/admin/orders'
-    | '/blog/$slug'
     | '/shop/$id'
   id:
     | '__root__'
@@ -239,14 +228,13 @@ export interface FileRouteTypes {
     | '/under-1000'
     | '/why-us'
     | '/admin/orders'
-    | '/blog/$slug'
     | '/shop/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  BlogRoute: typeof BlogRouteWithChildren
+  BlogRoute: typeof BlogRoute
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
@@ -376,13 +364,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/$slug': {
-      id: '/blog/$slug'
-      path: '/$slug'
-      fullPath: '/blog/$slug'
-      preLoaderRoute: typeof BlogSlugRouteImport
-      parentRoute: typeof BlogRoute
-    }
     '/shop/$id': {
       id: '/shop/$id'
       path: '/$id'
@@ -392,16 +373,6 @@ declare module '@tanstack/react-router' {
     }
   }
 }
-
-interface BlogRouteChildren {
-  BlogSlugRoute: typeof BlogSlugRoute
-}
-
-const BlogRouteChildren: BlogRouteChildren = {
-  BlogSlugRoute: BlogSlugRoute,
-}
-
-const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
 interface ShopRouteChildren {
   ShopIdRoute: typeof ShopIdRoute
@@ -416,7 +387,7 @@ const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  BlogRoute: BlogRouteWithChildren,
+  BlogRoute: BlogRoute,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,

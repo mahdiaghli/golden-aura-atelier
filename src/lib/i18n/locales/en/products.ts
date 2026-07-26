@@ -1,0 +1,26 @@
+import type { ProductTranslation } from "../../types";
+
+export const productsEn: Record<string, ProductTranslation> = {
+  "aurelia-solitaire": { name: "Aurelia Solitaire Ring", description: "A single-stone solitaire ring hand-cast in 18K white gold with a G-VS1 brilliant.", warranty: "Lifetime warranty" },
+  "helios-signet": { name: "Helios Signet Ring", description: "Weighty engraved signet, drawn from our Persian Archive collection.", warranty: "Lifetime warranty" },
+  "luna-chain": { name: "Luna Byzantine Chain", description: "A sculpted Byzantine link chain, satin-brushed with a hand-polished clasp.", warranty: "2-year warranty" },
+  "sirocco-collar": { name: "Sirocco Collar", description: "Investment-grade collar in pure 24K gold — heirloom weight, contemporary form.", warranty: "Lifetime warranty" },
+  "atlas-cuff": { name: "Atlas Sculpted Cuff", description: "Architectural cuff with hammered facets — no closure, sprung to fit.", warranty: "2-year warranty" },
+  "meridian-bracelet": { name: "Meridian Tennis Bracelet", description: "24 brilliants set in bezel-cut white gold with a hidden box clasp.", warranty: "Lifetime warranty" },
+  "ingot-100": { name: "Aurum Ingot 100g", description: "Cast investment bar, 999.9 fineness. Serial-numbered with assay certificate.", warranty: "Authenticity guarantee" },
+  "ingot-50": { name: "Aurum Ingot 50g", description: "Serialized 50-gram cast bar with tamper-evident assay card.", warranty: "Authenticity guarantee" },
+  "sovereign-coin": { name: "Sovereign Coin", description: "Struck sovereign in 22K — a classic collector coin, sealed capsule.", warranty: "Authenticity guarantee" },
+  "nova-band": { name: "Nova Eternity Band", description: "Full-round eternity band with 30 hand-set brilliants.", warranty: "Lifetime warranty" },
+  "cyrus-cross": { name: "Cyrus Cross Pendant", description: "Cross pendant on a Venetian chain, matte-finished.", warranty: "Lifetime warranty" },
+  "orbit-cuff-m": { name: "Orbit Cuff — Slim", description: "Slim architectural cuff, high-polish outer face, satin interior.", warranty: "2-year warranty" },
+  "ember-ring-gold": { name: "Ember Gold Ring", description: "Delicate minimalist ring in warm yellow gold.", warranty: "1-year warranty" },
+  "grace-pendant": { name: "Grace Pendant Necklace", description: "Elegant pendant on delicate chain, perfect for layering.", warranty: "1-year warranty" },
+  "simple-band": { name: "Simple Gold Band", description: "Timeless band ring, perfect for stacking or solo wear.", warranty: "Lifetime warranty" },
+  "rose-gold-cuff": { name: "Rose Gold Cuff", description: "Contemporary rose gold bangle with smooth finish.", warranty: "1-year warranty" },
+  "gold-snake-chain": { name: "Gold Snake Chain", description: "Versatile snake chain, perfect base for pendants.", warranty: "1-year warranty" },
+  "dainty-ring-small": { name: "Dainty Ring Collection", description: "Delicate stackable ring in white gold.", warranty: "Lifetime warranty" },
+  "comfort-band-men": { name: "Comfort Fit Band", description: "Comfortable everyday band for men with rounded edges.", warranty: "Lifetime warranty" },
+  "delicate-ankle": { name: "Delicate Ankle Bracelet", description: "Lightweight ankle bracelet with elegant clasp.", warranty: "1-year warranty" },
+  "gold-locket": { name: "Memory Gold Locket", description: "Hinged locket for precious memories, includes chain.", warranty: "1-year warranty" },
+  "twisted-band": { name: "Twisted Gold Band", description: "Modern twisted design in two-tone gold.", warranty: "Lifetime warranty" },
+};
