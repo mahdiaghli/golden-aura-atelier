@@ -1,5 +1,5 @@
 ﻿import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Shell } from "@/components/site/Chrome";
 import { SHOP_SEARCH_DEFAULT, type ShopSearch } from "@/lib/shop-search";
 import { products, categories, priceBreakdown, formatToman, type Category, type Karat } from "@/lib/products";
@@ -39,6 +39,8 @@ export const Route = createFileRoute("/shop")({
 function ShopPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+
+  const [visible, setVisible] = useState(24);
 
   const update = (patch: Partial<ShopSearch>) =>
     navigate({ search: (prev: ShopSearch) => ({ ...prev, ...patch }) });
@@ -261,7 +263,7 @@ function ShopPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-14">
-              {filtered.map((p) => {
+              {filtered.slice(0, visible).map((p) => {
                 const { total } = priceBreakdown(p);
                 return (
                   <Link
@@ -326,6 +328,17 @@ function ShopPage() {
                   </Link>
                 );
               })}
+            </div>
+          )}
+
+          {filtered.length > visible && (
+            <div className="mt-16 text-center">
+              <button
+                onClick={() => setVisible((v) => v + 24)}
+                className="border border-onyx/20 px-10 py-4 text-[11px] uppercase tracking-[0.2em] font-bold hover:border-gold hover:text-gold transition-colors"
+              >
+                Load more ({filtered.length - visible} remaining)
+              </button>
             </div>
           )}
         </div>
