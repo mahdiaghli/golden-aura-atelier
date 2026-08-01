@@ -1,14 +1,12 @@
-﻿import catRings from "@/assets/cat-rings.jpg";
-import catNecklaces from "@/assets/cat-necklaces.jpg";
-import catBracelets from "@/assets/cat-bracelets.jpg";
-import catBullion from "@/assets/cat-bullion.jpg";
+import catalog from "@/data/catalog.json";
 
 export type Karat = "18K" | "21K" | "22K" | "24K";
-export type Category = "rings" | "necklaces" | "bracelets" | "bullion";
+export type Category = "rings" | "necklaces" | "bracelets" | "earrings" | "sets" | "bullion";
 export type GoldColor = "yellow" | "white" | "rose" | "two-tone" | "three-tone";
 export type GemstoneType = "none" | "diamond" | "emerald" | "ruby" | "pearl";
 export type ProductStyle = "classic" | "minimal" | "modern" | "luxury" | "vintage";
 export type Occasion = "everyday" | "engagement" | "wedding" | "party" | "gift" | "investment";
+
 
 export type Product = {
   id: string;
