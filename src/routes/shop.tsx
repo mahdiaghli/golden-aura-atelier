@@ -1,5 +1,5 @@
 ﻿import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Shell } from "@/components/site/Chrome";
 import { SHOP_SEARCH_DEFAULT, type ShopSearch } from "@/lib/shop-search";
 import { products, categories, priceBreakdown, formatToman, type Category, type Karat } from "@/lib/products";
