@@ -43,6 +43,9 @@ export type Product = {
   newest?: boolean;
   mostSold?: boolean;
   aiRecommended?: boolean;
+  code?: string;
+  typeLabel?: string;
+  size?: string;
 };
 
 // Live rate used for price calc (Toman per gram)
