@@ -99,7 +99,13 @@ function ProductPage() {
           <dl className="mt-10 grid grid-cols-2 gap-6 border-y border-onyx/10 py-6">
             <Spec label="Karat" value={product.karat} />
             <Spec label="Weight" value={`${product.weight} g`} />
+            <Spec label="Type" value={product.typeLabel || product.category} />
+            <Spec label="Gold colour" value={(product.color || "—").replace("-", " ")} />
+            <Spec label="Size" value={product.size || "—"} />
+            <Spec label="Making" value={`${Math.round(product.makingPct * 100)}%`} />
             <Spec label="Wearer" value={product.gender[0].toUpperCase() + product.gender.slice(1)} />
+            <Spec label="Reference" value={product.code || product.sku} />
+            <Spec label="Availability" value={product.inStock === false ? "Reserved" : "In stock"} />
             <Spec label="Gemstone" value={product.gemstone || "—"} />
           </dl>
 
