@@ -6,7 +6,7 @@ import { products, categories, priceBreakdown, formatToman, type Category, type 
 
 const DEFAULTS: ShopSearch = SHOP_SEARCH_DEFAULT;
 
-export const Route = createFileRoute("/shop")({
+export const Route = createFileRoute("/shop/")({
   validateSearch: (raw: Record<string, unknown>): ShopSearch => ({
     category: (raw.category as ShopSearch["category"]) || DEFAULTS.category,
     karat: (raw.karat as ShopSearch["karat"]) || DEFAULTS.karat,
