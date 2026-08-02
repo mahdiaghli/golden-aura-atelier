@@ -41,6 +41,8 @@ function ShopPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
 
+  const { items: liveItems } = useLiveInventory();
+
   const [visible, setVisible] = useState(24);
 
   const update = (patch: Partial<ShopSearch>) =>
