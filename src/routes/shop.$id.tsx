@@ -69,13 +69,17 @@ function ProductPage() {
         <div>
           <div className="bg-secondary overflow-hidden">
             <img
-              src={product.gallery[active]}
+              src={gallery[Math.min(active, gallery.length - 1)]}
               alt={product.name}
+              onError={(event) => {
+                const img = event.currentTarget;
+                if (img.src !== product.image) img.src = product.image;
+              }}
               className="w-full aspect-square object-cover"
             />
           </div>
           <div className="flex gap-3 mt-4">
-            {product.gallery.map((g, i) => (
+            {gallery.map((g, i) => (
               <button
                 key={i}
                 onClick={() => setActive(i)}
@@ -87,6 +91,7 @@ function ProductPage() {
               </button>
             ))}
           </div>
+
         </div>
 
         <div>
