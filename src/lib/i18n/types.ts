@@ -20,6 +20,7 @@ export type BlogTranslation = {
 };
 
 export type Messages = {
+  signup?: Record<string, unknown>;
   common: Record<string, string>;
   nav: Record<string, string | Record<string, string>>;
   ticker: Record<string, { label: string; value: string }>;
