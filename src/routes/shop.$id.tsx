@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Shell } from "@/components/site/Chrome";
 import { products, priceBreakdown, formatToman, GOLD_RATE_PER_GRAM, type Product, type Karat } from "@/lib/products";
 import { useCart } from "@/lib/cart";
+import { liveEntryFor, proxiedImage, useLiveInventory } from "@/lib/use-live-inventory";
 
 export const Route = createFileRoute("/shop/$id")({
   loader: ({ params }) => {
@@ -45,8 +46,12 @@ function ProductPage() {
   const router = useRouter();
   const [qty, setQty] = useState(1);
   const [active, setActive] = useState(0);
+  const { items: liveItems } = useLiveInventory();
+  const live = liveEntryFor(liveItems, product.code);
+  const gallery = live && live.images.length > 0 ? live.images.map(proxiedImage) : product.gallery;
   const bd = priceBreakdown(product);
   const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 3);
+
 
   return (
     <Shell>
@@ -64,13 +69,17 @@ function ProductPage() {
         <div>
           <div className="bg-secondary overflow-hidden">
             <img
-              src={product.gallery[active]}
+              src={gallery[Math.min(active, gallery.length - 1)]}
               alt={product.name}
+              onError={(event) => {
+                const img = event.currentTarget;
+                if (img.src !== product.image) img.src = product.image;
+              }}
               className="w-full aspect-square object-cover"
             />
           </div>
           <div className="flex gap-3 mt-4">
-            {product.gallery.map((g, i) => (
+            {gallery.map((g, i) => (
               <button
                 key={i}
                 onClick={() => setActive(i)}
@@ -82,6 +91,7 @@ function ProductPage() {
               </button>
             ))}
           </div>
+
         </div>
 
         <div>
@@ -105,7 +115,19 @@ function ProductPage() {
             <Spec label="Making" value={`${Math.round(product.makingPct * 100)}%`} />
             <Spec label="Wearer" value={product.gender[0].toUpperCase() + product.gender.slice(1)} />
             <Spec label="Reference" value={product.code || product.sku} />
-            <Spec label="Availability" value={product.inStock === false ? "Reserved" : "In stock"} />
+            <Spec
+              label="Availability"
+              value={
+                live
+                  ? live.quantity > 0
+                    ? `In stock — ${live.quantity} available`
+                    : "Unavailable"
+                  : product.inStock === false
+                    ? "Reserved"
+                    : "In stock"
+              }
+            />
+
             <Spec label="Gemstone" value={product.gemstone || "—"} />
           </dl>
 
