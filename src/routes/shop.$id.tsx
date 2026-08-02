@@ -115,7 +115,19 @@ function ProductPage() {
             <Spec label="Making" value={`${Math.round(product.makingPct * 100)}%`} />
             <Spec label="Wearer" value={product.gender[0].toUpperCase() + product.gender.slice(1)} />
             <Spec label="Reference" value={product.code || product.sku} />
-            <Spec label="Availability" value={product.inStock === false ? "Reserved" : "In stock"} />
+            <Spec
+              label="Availability"
+              value={
+                live
+                  ? live.quantity > 0
+                    ? `In stock — ${live.quantity} available`
+                    : "Unavailable"
+                  : product.inStock === false
+                    ? "Reserved"
+                    : "In stock"
+              }
+            />
+
             <Spec label="Gemstone" value={product.gemstone || "—"} />
           </dl>
 
