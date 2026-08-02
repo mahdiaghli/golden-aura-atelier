@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Shell } from "@/components/site/Chrome";
 import { products, priceBreakdown, formatToman, GOLD_RATE_PER_GRAM, type Product, type Karat } from "@/lib/products";
 import { useCart } from "@/lib/cart";
+import { liveEntryFor, proxiedImage, useLiveInventory } from "@/lib/use-live-inventory";
 
 export const Route = createFileRoute("/shop/$id")({
   loader: ({ params }) => {
