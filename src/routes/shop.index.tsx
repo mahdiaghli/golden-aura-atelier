@@ -265,6 +265,8 @@ function ShopPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-14">
               {filtered.slice(0, visible).map((p) => {
                 const { total } = priceBreakdown(p);
+                const live = liveEntryFor(liveItems, p.code);
+                const liveImage = live?.images[0];
                 return (
                   <Link
                     key={p.id}
@@ -275,13 +277,26 @@ function ShopPage() {
                   >
                     <div className="overflow-hidden bg-secondary mb-4 relative">
                       <img
-                        src={p.image}
+                        src={liveImage ? proxiedImage(liveImage) : p.image}
                         alt={p.name}
                         loading="lazy"
+                        onError={(event) => {
+                          const img = event.currentTarget;
+                          if (img.src !== p.image) img.src = p.image;
+                        }}
                         className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-700"
                       />
                       {/* Badges */}
                       <div className="absolute top-4 left-4 flex flex-col gap-2">
+                        {live && (
+                          <span
+                            className={`text-[9px] px-2.5 py-1 font-bold uppercase tracking-wider ${
+                              live.quantity > 0 ? "bg-onyx text-parchment" : "bg-onyx/40 text-parchment"
+                            }`}
+                          >
+                            {live.quantity > 0 ? `Qty ${live.quantity}` : "Unavailable"}
+                          </span>
+                        )}
                         {p.bestseller && (
                           <span className="bg-gold text-onyx text-[9px] px-2.5 py-1 font-bold uppercase tracking-wider">Bestseller</span>
                         )}
@@ -292,6 +307,7 @@ function ShopPage() {
                           <span className="bg-blue-600 text-white text-[9px] px-2.5 py-1 font-bold uppercase tracking-wider">Most Sold</span>
                         )}
                       </div>
+
                       {p.onSale && p.discount && (
                         <div className="absolute top-4 right-4 bg-red-600 text-white text-[10px] px-2.5 py-1.5 font-bold rounded">
                           -{p.discount}%
