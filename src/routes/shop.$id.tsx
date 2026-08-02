@@ -45,8 +45,12 @@ function ProductPage() {
   const router = useRouter();
   const [qty, setQty] = useState(1);
   const [active, setActive] = useState(0);
+  const { items: liveItems } = useLiveInventory();
+  const live = liveEntryFor(liveItems, product.code);
+  const gallery = live && live.images.length > 0 ? live.images.map(proxiedImage) : product.gallery;
   const bd = priceBreakdown(product);
   const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 3);
+
 
   return (
     <Shell>
