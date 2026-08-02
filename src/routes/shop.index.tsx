@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Shell } from "@/components/site/Chrome";
 import { SHOP_SEARCH_DEFAULT, type ShopSearch } from "@/lib/shop-search";
 import { products, categories, priceBreakdown, formatToman, type Category, type Karat } from "@/lib/products";
+import { liveEntryFor, proxiedImage, useLiveInventory } from "@/lib/use-live-inventory";
 
 const DEFAULTS: ShopSearch = SHOP_SEARCH_DEFAULT;
 
