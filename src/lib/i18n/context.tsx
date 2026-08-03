@@ -49,7 +49,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const messages = locales[locale];
-  const dir = locale === "fa" ? "rtl" : "ltr";
+  const dir: "ltr" | "rtl" = locale === "fa" ? "rtl" : "ltr";
 
   const t = useCallback(
     (key: string, vars?: Record<string, string | number>) => {
