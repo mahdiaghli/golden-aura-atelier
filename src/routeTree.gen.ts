@@ -23,6 +23,7 @@ import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as Under1000RouteImport } from './routes/under-1000'
 import { Route as WhyUsRouteImport } from './routes/why-us'
+import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as ShopIndexRouteImport } from './routes/shop.index'
 import { Route as ShopIdRouteImport } from './routes/shop.$id'
@@ -97,6 +98,11 @@ const WhyUsRoute = WhyUsRouteImport.update({
   path: '/why-us',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WishlistRoute = WishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminOrdersRoute = AdminOrdersRouteImport.update({
   id: '/admin/orders',
   path: '/admin/orders',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/under-1000': typeof Under1000Route
   '/why-us': typeof WhyUsRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/shop/$id': typeof ShopIdRoute
   '/shop/': typeof ShopIndexRoute
@@ -147,6 +154,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/under-1000': typeof Under1000Route
   '/why-us': typeof WhyUsRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/shop/$id': typeof ShopIdRoute
   '/shop': typeof ShopIndexRoute
@@ -167,6 +175,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/under-1000': typeof Under1000Route
   '/why-us': typeof WhyUsRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/shop/$id': typeof ShopIdRoute
   '/shop/': typeof ShopIndexRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/under-1000'
     | '/why-us'
+    | '/wishlist'
     | '/admin/orders'
     | '/shop/$id'
     | '/shop/'
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/under-1000'
     | '/why-us'
+    | '/wishlist'
     | '/admin/orders'
     | '/shop/$id'
     | '/shop'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/under-1000'
     | '/why-us'
+    | '/wishlist'
     | '/admin/orders'
     | '/shop/$id'
     | '/shop/'
@@ -246,6 +258,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   Under1000Route: typeof Under1000Route
   WhyUsRoute: typeof WhyUsRoute
+  WishlistRoute: typeof WishlistRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   ShopIdRoute: typeof ShopIdRoute
   ShopIndexRoute: typeof ShopIndexRoute
@@ -351,6 +364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WhyUsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/wishlist': {
+      id: '/wishlist'
+      path: '/wishlist'
+      fullPath: '/wishlist'
+      preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/orders': {
       id: '/admin/orders'
       path: '/admin/orders'
@@ -390,6 +410,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   Under1000Route: Under1000Route,
   WhyUsRoute: WhyUsRoute,
+  WishlistRoute: WishlistRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   ShopIdRoute: ShopIdRoute,
   ShopIndexRoute: ShopIndexRoute,

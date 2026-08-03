@@ -1,10 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronDown, Instagram, MapPin, Menu, Phone, Search, Send, ShoppingBag, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ChevronDown, Heart, Instagram, MapPin, Menu, Phone, Search, Send, ShoppingBag, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/lib/cart";
 import { useI18n } from "@/lib/i18n/context";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { SHOP_SEARCH_DEFAULT } from "@/lib/shop-search";
+import { fetchMarketSnapshot, formatMarketPrice, type MarketSnapshot } from "@/lib/market-prices";
+import { useWishlist } from "@/lib/wishlist";
 
 const NESHAN_URL =
   "https://neshan.org/maps/?q=%D9%85%D8%B4%D9%87%D8%AF%20%D8%A8%DB%8C%D9%86%20%D8%AD%D8%B1%207%20%D9%88%209%20%D8%AC%D9%86%D8%A8%20%D8%AF%D8%B1%D9%85%D8%A7%D9%86%DA%AF%D8%A7%D9%87%20%D8%B3%D9%85%D8%A7%20%D8%B7%D9%84%D8%A7%D8%AC%D8%A7%D8%AA%20%D8%B9%D9%82%D9%84%DB%8C";
@@ -29,13 +31,29 @@ function buildShopSearch(item: string) {
 
 export function Ticker() {
   const { messages } = useI18n();
-  const items = [
-    { ...messages.ticker.live18k, dot: "bg-emerald-500 animate-pulse" },
-    { ...messages.ticker.globalSpot, dot: "bg-gold-soft" },
-    { ...messages.ticker.marketStatus, dot: "bg-gold" },
-    { ...messages.ticker.gold24k, dot: "bg-emerald-500" },
-    { ...messages.ticker.makingRate, dot: "bg-gold-soft" },
-  ];
+  const [market, setMarket] = useState<MarketSnapshot | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchMarketSnapshot(controller.signal)
+      .then(setMarket)
+      .catch(() => setMarket(null));
+    return () => controller.abort();
+  }, []);
+
+  const items = market?.items.length
+    ? market.items.map((item) => ({
+        label: item.name,
+        value: `${formatMarketPrice(item)} ${item.unit ?? "Toman"}`,
+        dot: item.symbol.includes("USD") ? "bg-gold-soft" : "bg-emerald-500",
+      }))
+    : [
+        { ...messages.ticker.live18k, dot: "bg-emerald-500 animate-pulse" },
+        { ...messages.ticker.globalSpot, dot: "bg-gold-soft" },
+        { ...messages.ticker.marketStatus, dot: "bg-gold" },
+        { ...messages.ticker.gold24k, dot: "bg-emerald-500" },
+        { ...messages.ticker.makingRate, dot: "bg-gold-soft" },
+      ];
 
   return (
     <div className="overflow-hidden whitespace-nowrap border-b border-gold/30 bg-onyx py-2 text-parchment">
@@ -53,6 +71,7 @@ export function Ticker() {
 
 export function Nav() {
   const { count } = useCart();
+  const { count: wishlistCount } = useWishlist();
   const { t } = useI18n();
   const [open, setOpen] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -93,13 +112,28 @@ export function Nav() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-onyx/10 bg-parchment/95 backdrop-blur-md" onMouseLeave={() => setOpen(null)}>
+      <div className="hidden border-b border-onyx/8 bg-white/55 lg:block">
+        <div className="mx-auto flex h-10 max-w-7xl items-center justify-between px-6 text-[10px] uppercase tracking-[0.22em] text-onyx/55">
+          <div className="flex items-center gap-5">
+            <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="hover:text-gold">Shop</Link>
+            <Link to="/shop" search={{ ...SHOP_SEARCH_DEFAULT, stock: "made-to-order" }} className="hover:text-gold">Engraving</Link>
+            <Link to="/prices" className="hover:text-gold">Market</Link>
+            <Link to="/services" className="hover:text-gold">Services</Link>
+          </div>
+          <div className="flex items-center gap-5">
+            <a href="tel:09153145726" className="hover:text-gold">0915 314 5726</a>
+            <a href="https://t.me/aghligold" target="_blank" rel="noreferrer" className="hover:text-gold">Telegram</a>
+          </div>
+        </div>
+      </div>
+
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <button className="-ml-2 p-2 lg:hidden" onClick={() => setMobileOpen((value) => !value)} aria-label={t("nav.ariaToggle")}>
           {mobileOpen ? <X size={21} /> : <Menu size={22} />}
         </button>
 
         <Link to="/" className="lg:absolute lg:left-1/2 lg:-translate-x-1/2">
-          <h1 className="select-none font-serif text-3xl font-bold tracking-tighter">
+          <h1 className="select-none text-3xl font-semibold tracking-[0.18em]">
             AGHLI<span className="text-gold">.</span>
           </h1>
         </Link>
@@ -113,6 +147,14 @@ export function Nav() {
           </Link>
           <Link to="/profile" className="hidden text-[11px] font-semibold uppercase tracking-widest text-gold sm:block">
             {t("nav.account")}
+          </Link>
+          <Link to="/wishlist" className="relative rounded-full p-1" aria-label="Wishlist">
+            {wishlistCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[9px] font-bold text-parchment">
+                {wishlistCount}
+              </span>
+            )}
+            <Heart size={19} strokeWidth={1.7} />
           </Link>
           <Link to="/cart" className="relative rounded-full p-1" aria-label={t("nav.ariaCart")}>
             {count > 0 && (
@@ -276,7 +318,7 @@ export function Footer() {
           <div>
             <h3 className="text-[11px] font-bold uppercase tracking-widest">{t("footer.exploreTitle")}</h3>
             <div className="mt-5 space-y-3 text-sm text-onyx/60">
-              <Link to="/shop" className="block hover:text-gold">{t("footer.exploreShop")}</Link>
+              <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="block hover:text-gold">{t("footer.exploreShop")}</Link>
               <Link to="/prices" className="block hover:text-gold">{t("footer.exploreMarketPrices")}</Link>
               <Link to="/contact" className="block hover:text-gold">{t("nav.contact")}</Link>
             </div>

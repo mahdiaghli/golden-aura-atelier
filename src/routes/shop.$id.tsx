@@ -1,8 +1,46 @@
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Heart, Send, Share2, Star } from "lucide-react";
+import { toast } from "sonner";
 import { Shell } from "@/components/site/Chrome";
+import { SHOP_SEARCH_DEFAULT } from "@/lib/shop-search";
 import { products, priceBreakdown, formatToman, GOLD_RATE_PER_GRAM, type Product, type Karat } from "@/lib/products";
 import { useCart } from "@/lib/cart";
+import { useWishlist } from "@/lib/wishlist";
+
+type Review = {
+  name: string;
+  rating: number;
+  text: string;
+  date: string;
+  verified?: boolean;
+};
+
+function seedReviews(product: Product): Review[] {
+  return [
+    {
+      name: "Alya",
+      rating: product.rating ? Math.round(product.rating) : 5,
+      text: `Beautiful finishing and balanced weight. The ${product.karat} tone looks even better in person.`,
+      date: "Recently",
+      verified: true,
+    },
+    {
+      name: "Reza",
+      rating: 5,
+      text: `The piece matched the photos closely and the live price breakdown made the purchase easy to trust.`,
+      date: "Last week",
+      verified: true,
+    },
+    {
+      name: "Mina",
+      rating: 4,
+      text: `Excellent for gifting. Packaging was clean and the engraving-ready finish is a nice touch.`,
+      date: "2 weeks ago",
+      verified: true,
+    },
+  ];
+}
 
 export const Route = createFileRoute("/shop/$id")({
   loader: ({ params }) => {
@@ -31,7 +69,7 @@ export const Route = createFileRoute("/shop/$id")({
       <div className="max-w-3xl mx-auto px-6 py-32 text-center">
         <h1 className="font-serif text-5xl">Piece not found</h1>
         <p className="text-onyx/60 mt-4">This piece may have been reserved or archived.</p>
-        <Link to="/shop" className="inline-block mt-8 text-[11px] uppercase tracking-widest text-gold border-b border-gold pb-1">
+        <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="inline-block mt-8 text-[11px] uppercase tracking-widest text-gold border-b border-gold pb-1">
           Return to the collection
         </Link>
       </div>
@@ -42,11 +80,68 @@ export const Route = createFileRoute("/shop/$id")({
 function ProductPage() {
   const { product } = Route.useLoaderData() as { product: Product };
   const { add } = useCart();
+  const { has, toggle } = useWishlist();
   const router = useRouter();
   const [qty, setQty] = useState(1);
   const [active, setActive] = useState(0);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewName, setReviewName] = useState("");
+  const [reviewText, setReviewText] = useState("");
+  const [reviewRating, setReviewRating] = useState(Math.round(product.rating ?? 5));
   const bd = priceBreakdown(product);
   const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 3);
+  const reviewKey = `aurum-product-reviews-${product.id}`;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = window.localStorage.getItem(reviewKey);
+    setReviews(raw ? (JSON.parse(raw) as Review[]) : seedReviews(product));
+  }, [product, reviewKey]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || reviews.length === 0) return;
+    window.localStorage.setItem(reviewKey, JSON.stringify(reviews));
+  }, [reviewKey, reviews]);
+
+  const averageRating = useMemo(() => {
+    if (reviews.length === 0) return product.rating ?? 0;
+    return reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+  }, [product.rating, reviews]);
+
+  const shareProduct = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: product.name, text: product.description, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+      }
+      toast.success("Link ready to share");
+    } catch {
+      toast.error("Sharing was cancelled");
+    }
+  };
+
+  const submitReview = () => {
+    if (!reviewName.trim() || !reviewText.trim()) {
+      toast.error("Please add your name and review text");
+      return;
+    }
+
+    const nextReview: Review = {
+      name: reviewName.trim(),
+      rating: reviewRating,
+      text: reviewText.trim(),
+      date: "Just now",
+      verified: false,
+    };
+
+    setReviews((current) => [nextReview, ...current]);
+    setReviewName("");
+    setReviewText("");
+    setReviewRating(5);
+    toast.success("Your review has been saved locally");
+  };
 
   return (
     <Shell>
@@ -54,7 +149,7 @@ function ProductPage() {
         <nav className="text-[10px] uppercase tracking-widest text-onyx/50">
           <Link to="/" className="hover:text-gold">Home</Link>
           <span className="mx-2">/</span>
-          <Link to="/shop" className="hover:text-gold">Collection</Link>
+          <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="hover:text-gold">Collection</Link>
           <span className="mx-2">/</span>
           <span className="text-onyx">{product.name}</span>
         </nav>
@@ -145,12 +240,89 @@ function ProductPage() {
             </button>
           </div>
 
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              onClick={() => toggle(product.id)}
+              className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] uppercase tracking-[0.2em] font-bold transition-colors ${
+                has(product.id) ? "border-gold bg-gold text-onyx" : "border-onyx/15 hover:border-gold hover:text-gold"
+              }`}
+            >
+              <Heart size={14} fill={has(product.id) ? "currentColor" : "none"} />
+              {has(product.id) ? "Saved" : "Save to wishlist"}
+            </button>
+            <button
+              onClick={shareProduct}
+              className="inline-flex items-center gap-2 rounded-full border border-onyx/15 px-4 py-2 text-[11px] uppercase tracking-[0.2em] font-bold hover:border-gold hover:text-gold transition-colors"
+            >
+              <Share2 size={14} /> Share
+            </button>
+          </div>
+
           <ul className="mt-10 grid grid-cols-2 gap-4 text-[11px] uppercase tracking-widest text-onyx/60">
             <li>· Complimentary insured shipping</li>
             <li>· Certificate of authenticity</li>
             <li>· 30-day returns</li>
             <li>· Lifetime polishing</li>
           </ul>
+        </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-6 pb-20 pt-4 border-t border-onyx/10">
+        <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr]">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.28em] text-gold">Customer reviews</p>
+            <h2 className="mt-3 text-3xl">What buyers say about this piece</h2>
+            <div className="mt-6 grid grid-cols-2 gap-4">
+              <div className="rounded-3xl bg-secondary p-5">
+                <div className="text-4xl font-semibold text-gold">{averageRating.toFixed(1)}</div>
+                <p className="mt-2 text-sm text-onyx/60">Average rating</p>
+              </div>
+              <div className="rounded-3xl bg-secondary p-5">
+                <div className="text-4xl font-semibold text-gold">{reviews.length}</div>
+                <p className="mt-2 text-sm text-onyx/60">Review count</p>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-3xl border border-onyx/10 bg-white/60 p-5">
+              <h3 className="text-lg">Leave a review</h3>
+              <div className="mt-4 grid gap-3">
+                <input value={reviewName} onChange={(e) => setReviewName(e.target.value)} placeholder="Your name" className="w-full border border-onyx/15 bg-transparent px-4 py-3 text-sm outline-none focus:border-gold" />
+                <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} placeholder="Tell us what you thought about the piece" rows={4} className="w-full border border-onyx/15 bg-transparent px-4 py-3 text-sm outline-none focus:border-gold" />
+                <label className="flex items-center gap-3 text-sm text-onyx/60">
+                  Rating
+                  <select value={reviewRating} onChange={(e) => setReviewRating(Number(e.target.value))} className="border border-onyx/15 bg-transparent px-3 py-2 text-sm outline-none focus:border-gold">
+                    {[5, 4, 3, 2, 1].map((rating) => (
+                      <option key={rating} value={rating}>
+                        {rating} stars
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button onClick={submitReview} className="inline-flex items-center justify-center gap-2 bg-onyx px-5 py-3 text-[11px] uppercase tracking-[0.2em] font-bold text-parchment hover:bg-gold hover:text-onyx transition-all">
+                  <Send size={14} /> Save review
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {reviews.map((review) => (
+              <article key={`${review.name}-${review.date}-${review.text.slice(0, 12)}`} className="rounded-3xl border border-onyx/10 bg-white/70 p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="font-medium">{review.name}</p>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-onyx/45">{review.date} {review.verified ? "· Verified buyer" : "· Saved locally"}</p>
+                  </div>
+                  <div className="flex items-center gap-1 text-gold">
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <Star key={index} size={14} fill={index < review.rating ? "currentColor" : "none"} />
+                    ))}
+                  </div>
+                </div>
+                <p className="mt-4 text-sm leading-relaxed text-onyx/70">{review.text}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 

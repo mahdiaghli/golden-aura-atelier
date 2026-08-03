@@ -117,6 +117,8 @@ export const products: Product[] = (catalog as CatalogRow[]).map((row, i) => {
       row.size ? `, size ${row.size}` : ""
     }. Reference ${row.code}. Priced live against the daily gold rate.`,
     inStock: true,
+    customizable: row.category === "rings" || row.category === "sets" || h % 4 === 0,
+    madeToOrder: row.category === "rings" || row.category === "sets" || h % 5 === 0,
     returnable: true,
     sizeAdjustable: row.category === "rings" || row.category === "bracelets",
     warranty: "Certificate of authenticity",

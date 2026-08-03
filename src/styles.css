@@ -93,7 +93,15 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
-  .font-serif { font-family: var(--font-serif); }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .font-serif {
+    font-family: var(--font-sans);
+  }
 }
 
 @keyframes marquee {

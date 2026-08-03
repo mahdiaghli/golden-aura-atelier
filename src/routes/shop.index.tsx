@@ -1,8 +1,11 @@
 ﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { Heart, Share2, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { Shell } from "@/components/site/Chrome";
 import { SHOP_SEARCH_DEFAULT, type ShopSearch } from "@/lib/shop-search";
 import { products, categories, priceBreakdown, formatToman, type Category, type Karat } from "@/lib/products";
+import { useWishlist } from "@/lib/wishlist";
 
 const DEFAULTS: ShopSearch = SHOP_SEARCH_DEFAULT;
 
@@ -39,11 +42,46 @@ export const Route = createFileRoute("/shop/")({
 function ShopPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+  const { has, toggle } = useWishlist();
 
   const [visible, setVisible] = useState(24);
+  const [engravingText, setEngravingText] = useState("");
+  const [engravingPiece, setEngravingPiece] = useState("Ring");
 
   const update = (patch: Partial<ShopSearch>) =>
     navigate({ search: (prev: ShopSearch) => ({ ...prev, ...patch }) });
+
+  const customPieces = useMemo(() => products.filter((piece) => piece.customizable || piece.madeToOrder).slice(0, 8), []);
+
+  const shareProduct = async (product: (typeof products)[number]) => {
+    const url = new URL(`/shop/${product.id}`, window.location.origin).toString();
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: product.name, text: product.description, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+      }
+      toast.success("Link copied and ready to share");
+    } catch {
+      toast.error("Sharing was cancelled");
+    }
+  };
+
+  const saveEngravingRequest = () => {
+    if (!engravingText.trim()) {
+      toast.error("Enter the text you want engraved");
+      return;
+    }
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(
+        "aurum-engraving-request",
+        JSON.stringify({ piece: engravingPiece, text: engravingText.trim(), createdAt: new Date().toISOString() }),
+      );
+    }
+
+    toast.success("Engraving request saved. Our team can confirm it on contact.");
+  };
 
   const filtered = useMemo(() => {
     let list = products.filter((p) => {
@@ -235,6 +273,77 @@ function ShopPage() {
         </aside>
 
         <div>
+          {/* <section className="mb-12 overflow-hidden rounded-[2rem] border border-onyx/10 bg-white/65">
+            <div className="grid gap-8 p-6 lg:grid-cols-[1fr_1.1fr] lg:p-8">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-gold">Engraving & plaque orders</p>
+                <h2 className="mt-3 text-3xl leading-tight">Order personalized text or an engraved plaque.</h2>
+                <p className="mt-4 max-w-xl text-sm leading-relaxed text-onyx/65">
+                  Write the text you want engraved, choose the product type, and preview the pieces we already support for custom work.
+                </p>
+
+                <div className="mt-6 grid gap-3">
+                  <input
+                    value={engravingText}
+                    onChange={(e) => setEngravingText(e.target.value)}
+                    placeholder="Example: With love, forever"
+                    className="w-full border border-onyx/15 bg-transparent px-4 py-3 text-sm outline-none focus:border-gold"
+                  />
+                  <select
+                    value={engravingPiece}
+                    onChange={(e) => setEngravingPiece(e.target.value)}
+                    className="w-full border border-onyx/15 bg-transparent px-4 py-3 text-sm outline-none focus:border-gold"
+                  >
+                    <option>Ring</option>
+                    <option>Bracelet</option>
+                    <option>Necklace</option>
+                    <option>Plague / Plate</option>
+                    <option>Gift plaque</option>
+                  </select>
+                  <button
+                    onClick={saveEngravingRequest}
+                    className="inline-flex items-center justify-center gap-2 bg-onyx px-5 py-3 text-[11px] uppercase tracking-[0.2em] font-bold text-parchment hover:bg-gold hover:text-onyx transition-all"
+                  >
+                    <Sparkles size={15} /> Save engraving request
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                {customPieces.map((piece) => {
+                  const total = priceBreakdown(piece).total;
+                  return (
+                    <div key={piece.id} className="rounded-3xl border border-onyx/10 bg-parchment p-3">
+                      <Link to="/shop/$id" params={{ id: piece.id }} className="block overflow-hidden rounded-2xl">
+                        <img src={piece.image} alt={piece.name} className="aspect-[4/5] w-full object-cover transition duration-700 hover:scale-105" />
+                      </Link>
+                      <div className="p-3 pb-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <Link to="/shop/$id" params={{ id: piece.id }} className="text-base font-medium hover:text-gold">
+                              {piece.name}
+                            </Link>
+                            <p className="mt-1 text-[10px] uppercase tracking-widest text-onyx/50">
+                              {piece.customizable ? "Customizable" : "Made to order"}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => toggle(piece.id)}
+                            className={`rounded-full border p-2 transition-colors ${has(piece.id) ? "border-gold bg-gold text-onyx" : "border-onyx/15 hover:border-gold hover:text-gold"}`}
+                            aria-label={has(piece.id) ? "Remove from wishlist" : "Add to wishlist"}
+                          >
+                            <Heart size={14} fill={has(piece.id) ? "currentColor" : "none"} />
+                          </button>
+                        </div>
+                        <p className="mt-3 text-sm font-medium text-gold">{formatToman(total)}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section> */}
+
           <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
             <p className="text-xs uppercase tracking-widest text-onyx/50">
               {filtered.length} {filtered.length === 1 ? "piece" : "pieces"}
@@ -266,66 +375,68 @@ function ShopPage() {
               {filtered.slice(0, visible).map((p) => {
                 const { total } = priceBreakdown(p);
                 return (
-                  <Link
-                    key={p.id}
-                    to="/shop/$id"
-                    params={{ id: p.id }}
-                    search={SHOP_SEARCH_DEFAULT}
-                    className="group"
-                  >
-                    <div className="overflow-hidden bg-secondary mb-4 relative">
-                      <img
-                        src={p.image}
-                        alt={p.name}
-                        loading="lazy"
-                        className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                      {/* Badges */}
-                      <div className="absolute top-4 left-4 flex flex-col gap-2">
-                        {p.bestseller && (
-                          <span className="bg-gold text-onyx text-[9px] px-2.5 py-1 font-bold uppercase tracking-wider">Bestseller</span>
-                        )}
-                        {p.newest && (
-                          <span className="bg-emerald-600 text-white text-[9px] px-2.5 py-1 font-bold uppercase tracking-wider">New</span>
-                        )}
-                        {p.mostSold && (
-                          <span className="bg-blue-600 text-white text-[9px] px-2.5 py-1 font-bold uppercase tracking-wider">Most Sold</span>
-                        )}
+                  <div key={p.id} className="group">
+                    <div className="relative mb-4 overflow-hidden bg-secondary">
+                      <Link to="/shop/$id" params={{ id: p.id }} search={SHOP_SEARCH_DEFAULT} className="block">
+                        <img
+                          src={p.image}
+                          alt={p.name}
+                          loading="lazy"
+                          className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-700"
+                        />
+                      </Link>
+                      <div className="absolute left-4 top-4 flex flex-col gap-2">
+                        {p.bestseller && <span className="bg-gold px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-onyx">Bestseller</span>}
+                        {p.newest && <span className="bg-emerald-600 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white">New</span>}
+                        {p.mostSold && <span className="bg-blue-600 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white">Most Sold</span>}
+                      </div>
+                      <div className="absolute right-3 top-3 flex flex-col gap-2">
+                        <button
+                          onClick={() => toggle(p.id)}
+                          className={`rounded-full border p-2 backdrop-blur-sm transition-colors ${has(p.id) ? "border-gold bg-gold text-onyx" : "border-white/40 bg-white/90 hover:border-gold hover:text-gold"}`}
+                          aria-label={has(p.id) ? "Remove from wishlist" : "Add to wishlist"}
+                        >
+                          <Heart size={14} fill={has(p.id) ? "currentColor" : "none"} />
+                        </button>
+                        <button
+                          onClick={() => shareProduct(p)}
+                          className="rounded-full border border-white/40 bg-white/90 p-2 backdrop-blur-sm transition-colors hover:border-gold hover:text-gold"
+                          aria-label={`Share ${p.name}`}
+                        >
+                          <Share2 size={14} />
+                        </button>
                       </div>
                       {p.onSale && p.discount && (
-                        <div className="absolute top-4 right-4 bg-red-600 text-white text-[10px] px-2.5 py-1.5 font-bold rounded">
-                          -{p.discount}%
-                        </div>
+                        <div className="absolute right-4 top-16 rounded bg-red-600 px-2.5 py-1.5 text-[10px] font-bold text-white">-{p.discount}%</div>
                       )}
-                      {p.aiRecommended && (
-                        <div className="absolute bottom-4 right-4 text-xl">âœ¨</div>
-                      )}
+                      {p.aiRecommended && <div className="absolute bottom-4 right-4 text-xl">✨</div>}
                     </div>
-                    <div className="flex justify-between items-start gap-4 mb-2">
+                    <div className="mb-2 flex items-start justify-between gap-4">
                       <div>
-                        <h3 className="font-serif text-lg leading-tight group-hover:text-gold transition-colors">{p.name}</h3>
-                        <p className="text-[10px] uppercase tracking-widest text-onyx/50 mt-1">
-                          {p.karat} Â· {p.weight}g
+                        <Link to="/shop/$id" params={{ id: p.id }} search={SHOP_SEARCH_DEFAULT} className="block text-lg leading-tight transition-colors hover:text-gold">
+                          {p.name}
+                        </Link>
+                        <p className="mt-1 text-[10px] uppercase tracking-widest text-onyx/50">
+                          {p.karat} · {p.weight}g
                         </p>
                       </div>
                       <div className="text-right">
                         {p.rating && (
                           <div className="text-xs">
-                            <span className="text-gold font-semibold">â˜… {p.rating}</span>
+                            <span className="font-semibold text-gold">★ {p.rating}</span>
                             {p.reviews && <p className="text-[9px] text-onyx/40">({p.reviews})</p>}
                           </div>
                         )}
                       </div>
                     </div>
-                    <p className="text-sm font-medium mb-2">{formatToman(total)}</p>
-                    {/* Features */}
+                    <p className="mb-2 text-sm font-medium">{formatToman(total)}</p>
                     <div className="space-y-1">
-                      {p.freeShipping && <p className="text-[9px] text-emerald-600 font-medium">ðŸšš Free Shipping</p>}
-                      {p.expressDelivery && <p className="text-[9px] text-blue-600 font-medium">âš¡ Express Delivery</p>}
-                      {p.customizable && <p className="text-[9px] text-onyx/60 font-medium">âœï¸ Customizable</p>}
-                      {p.sizeAdjustable && <p className="text-[9px] text-onyx/60 font-medium">âš™ï¸ Size Adjustable</p>}
+                      {p.freeShipping && <p className="text-[9px] font-medium text-emerald-600">🚚 Free Shipping</p>}
+                      {p.expressDelivery && <p className="text-[9px] font-medium text-blue-600">⚡ Express Delivery</p>}
+                      {p.customizable && <p className="text-[9px] font-medium text-onyx/60">✏️ Customizable</p>}
+                      {p.sizeAdjustable && <p className="text-[9px] font-medium text-onyx/60">⚙️ Size Adjustable</p>}
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>
