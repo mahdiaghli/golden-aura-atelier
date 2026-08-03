@@ -43,4 +43,5 @@ export type Messages = {
   admin: Record<string, string>;
   products: Record<string, ProductTranslation>;
   blogPosts: Record<string, BlogTranslation>;
+  signup?: Record<string, unknown>;
 };
