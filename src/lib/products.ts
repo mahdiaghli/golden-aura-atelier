@@ -46,6 +46,7 @@ export type Product = {
   code?: string;
   typeLabel?: string;
   size?: string;
+  imageName?: string;
 };
 
 // Live rate used for price calc (Toman per gram)
