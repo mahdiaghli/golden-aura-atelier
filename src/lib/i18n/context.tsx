@@ -35,11 +35,12 @@ function interpolate(template: string, vars?: Record<string, string | number>) {
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    if (typeof window === "undefined") return "en";
+  const [locale, setLocaleState] = useState<Locale>("en");
+
+  useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    return stored === "fa" ? "fa" : "en";
-  });
+    if (stored === "fa") setLocaleState("fa");
+  }, []);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
