@@ -123,7 +123,7 @@ const occasions: Occasion[] = ["everyday", "gift", "party", "wedding", "engageme
 export const products: Product[] = (catalog as CatalogRow[]).map((row, i) => {
   const h = hash(row.id);
   const fallback = catalogImages[i % catalogImages.length]!;
-  const image = productImageUrl(row.imageName) ?? fallback;
+  const image = hasUploadedPhoto(row.imageName) ? productImageUrl(row.imageName)! : fallback;
   const alt = catalogImages[(i + 1) % catalogImages.length]!;
   return {
     ...row,
