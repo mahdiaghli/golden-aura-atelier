@@ -72,9 +72,6 @@ export function formatToman(n: number) {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(n)) + " T";
 }
 
-const catalogImages = Array.from({ length: 22 }, (_, index) =>
-  `/products/catalog/product-${String(index + 1).padStart(2, "0")}.webp`,
-);
 
 type CatalogRow = {
   id: string;
