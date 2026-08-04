@@ -378,16 +378,11 @@ function ShopPage() {
                   <div key={p.id} className="group">
                     <div className="relative mb-4 overflow-hidden bg-secondary">
                       <Link to="/shop/$id" params={{ id: p.id }} search={SHOP_SEARCH_DEFAULT} className="block">
-                        <img
-                          src={p.image}
-                          alt={p.name}
-                          loading="lazy"
-                          onError={(e) => {
-                            const img = e.currentTarget;
-                            if (p.gallery[1] && img.src !== p.gallery[1]) img.src = p.gallery[1];
-                          }}
-                          className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-700"
+                        <ProductImage
+                          product={p}
+                          className="w-full aspect-[4/5] group-hover:scale-105 transition-transform duration-700"
                         />
+
                       </Link>
                       <div className="absolute left-4 top-4 flex flex-col gap-2">
                         {p.bestseller && <span className="bg-gold px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-onyx">Bestseller</span>}
