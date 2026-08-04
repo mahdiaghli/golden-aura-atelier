@@ -1,4 +1,5 @@
 import catalog from "@/data/catalog.json";
+import imageMap from "@/data/product-image-map.json";
 
 export type Karat = "18K" | "21K" | "22K" | "24K";
 export type Category = "rings" | "necklaces" | "bracelets" | "earrings" | "sets" | "bullion";
