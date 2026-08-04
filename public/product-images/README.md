@@ -1,9 +1,24 @@
-# Product photos
+# عکس محصولات
 
-Copy every image file from the accounting export folder
-`zrebuilt.File1405-04-23` into this folder (`public/product-images/`).
+هر محصول در `src/data/catalog.json` یک فیلد `imageName` دارد که دقیقاً از ستون «تصویر»
+فایل اکسل حسابداری گرفته شده است (مثلاً `Img20250530-12.jpg`).
 
-Each product in `src/data/catalog.json` has an `imageName` field taken from the
-"تصویر" column of the Excel export (e.g. `Img20260504-460.jpg`). The site loads
-it from `/product-images/<imageName>` and falls back to a placeholder photo when
-the file is missing.
+## منطق نمایش
+
+`src/lib/products.ts`:
+
+1. `productImageUrl(imageName)` ابتدا در `src/data/product-image-map.json` دنبال آدرس CDN می‌گردد.
+2. اگر آن نام در نگاشت نباشد، محصول **هیچ عکسی** نمی‌گیرد و کامپوننت
+   `src/components/site/ProductImage.tsx` یک قاب خنثی با نام برند و کد محصول نشان می‌دهد.
+   دیگر هرگز عکس یک محصول دیگر به‌جای عکس اصلی نمایش داده نمی‌شود.
+
+## افزودن عکس‌های جدید
+
+1. زیپ پوشه `zrebuilt.File1405-04-23` (یا هر دسته عکس جدید) را در چت آپلود کنید.
+2. فایل‌ها روی CDN آپلود می‌شوند (`lovable-assets create --file <path>`).
+3. برای هر فایل یک ردیف به `src/data/product-image-map.json` اضافه می‌شود:
+   `"Img20250530-12.jpg": "/__l5e/assets-v1/<asset-id>/Img20250530-12.jpg"`
+4. همین که نام فایل در نگاشت باشد، محصول مربوطه به‌صورت خودکار عکس خودش را نشان می‌دهد؛
+   نیازی به تغییر کد نیست.
+
+نام فایل باید **دقیقاً** با مقدار ستون «تصویر» اکسل یکی باشد (حساس به بزرگی/کوچکی حروف).

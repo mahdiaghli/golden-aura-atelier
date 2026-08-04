@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Heart, Share2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Shell } from "@/components/site/Chrome";
+import { ProductImage } from "@/components/site/ProductImage";
 import { SHOP_SEARCH_DEFAULT, type ShopSearch } from "@/lib/shop-search";
 import { products, categories, priceBreakdown, formatToman, type Category, type Karat } from "@/lib/products";
 import { useWishlist } from "@/lib/wishlist";
@@ -315,7 +316,7 @@ function ShopPage() {
                   return (
                     <div key={piece.id} className="rounded-3xl border border-onyx/10 bg-parchment p-3">
                       <Link to="/shop/$id" params={{ id: piece.id }} className="block overflow-hidden rounded-2xl">
-                        <img src={piece.image} alt={piece.name} className="aspect-[4/5] w-full object-cover transition duration-700 hover:scale-105" />
+                        <ProductImage product={piece} className="aspect-[4/5] w-full transition duration-700 hover:scale-105" />
                       </Link>
                       <div className="p-3 pb-2">
                         <div className="flex items-start justify-between gap-3">
@@ -378,16 +379,11 @@ function ShopPage() {
                   <div key={p.id} className="group">
                     <div className="relative mb-4 overflow-hidden bg-secondary">
                       <Link to="/shop/$id" params={{ id: p.id }} search={SHOP_SEARCH_DEFAULT} className="block">
-                        <img
-                          src={p.image}
-                          alt={p.name}
-                          loading="lazy"
-                          onError={(e) => {
-                            const img = e.currentTarget;
-                            if (p.gallery[1] && img.src !== p.gallery[1]) img.src = p.gallery[1];
-                          }}
-                          className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-700"
+                        <ProductImage
+                          product={p}
+                          className="w-full aspect-[4/5] group-hover:scale-105 transition-transform duration-700"
                         />
+
                       </Link>
                       <div className="absolute left-4 top-4 flex flex-col gap-2">
                         {p.bestseller && <span className="bg-gold px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-onyx">Bestseller</span>}

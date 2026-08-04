@@ -72,9 +72,6 @@ export function formatToman(n: number) {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(n)) + " T";
 }
 
-const catalogImages = Array.from({ length: 22 }, (_, index) =>
-  `/products/catalog/product-${String(index + 1).padStart(2, "0")}.webp`,
-);
 
 type CatalogRow = {
   id: string;
@@ -120,15 +117,16 @@ function hash(str: string) {
 const styles: ProductStyle[] = ["classic", "minimal", "modern", "luxury", "vintage"];
 const occasions: Occasion[] = ["everyday", "gift", "party", "wedding", "engagement"];
 
-export const products: Product[] = (catalog as CatalogRow[]).map((row, i) => {
+export const products: Product[] = (catalog as CatalogRow[]).map((row) => {
   const h = hash(row.id);
-  const fallback = catalogImages[i % catalogImages.length]!;
-  const image = hasUploadedPhoto(row.imageName) ? productImageUrl(row.imageName)! : fallback;
-  const alt = catalogImages[(i + 1) % catalogImages.length]!;
+  // Only ever show the piece's own photo. If it hasn't been uploaded yet we
+  // leave the image empty and the UI renders a neutral placeholder frame,
+  // so no product is displayed with another product's picture.
+  const image = hasUploadedPhoto(row.imageName) ? productImageUrl(row.imageName)! : "";
   return {
     ...row,
     image,
-    gallery: [image, alt],
+    gallery: image ? [image] : [],
     sku: row.code,
     style: styles[h % styles.length]!,
     occasion: occasions[(h >> 3) % occasions.length]!,
