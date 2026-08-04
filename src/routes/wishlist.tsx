@@ -44,7 +44,7 @@ function WishlistPage() {
                 return (
                   <div key={product.id} className="group overflow-hidden rounded-3xl border border-onyx/10 bg-white/60">
                     <Link to="/shop/$id" params={{ id: product.id }} className="block overflow-hidden">
-                      <img src={product.image} alt={product.name} className="aspect-[4/5] w-full object-cover transition duration-700 group-hover:scale-105" />
+                      <ProductImage product={product} className="aspect-[4/5] w-full transition duration-700 group-hover:scale-105" />
                     </Link>
                     <div className="p-5">
                       <Link to="/shop/$id" params={{ id: product.id }} className="text-xl font-medium hover:text-gold">
