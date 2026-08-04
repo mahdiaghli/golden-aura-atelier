@@ -120,7 +120,7 @@ function CheckoutPage() {
             <ul className="space-y-4">
               {items.map(({ product, qty, lineTotal }) => (
                 <li key={product.id} className="flex gap-3">
-                  <img src={product.image} alt={product.name} className="w-14 aspect-square object-cover" />
+                  <ProductImage product={product} className="w-14 aspect-square" />
                   <div className="flex-1 text-sm">
                     <p className="font-serif">{product.name}</p>
                     <p className="text-[10px] uppercase tracking-widest text-onyx/50 mt-0.5">Qty {qty}</p>
