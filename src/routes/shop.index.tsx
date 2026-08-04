@@ -382,6 +382,10 @@ function ShopPage() {
                           src={p.image}
                           alt={p.name}
                           loading="lazy"
+                          onError={(e) => {
+                            const img = e.currentTarget;
+                            if (p.gallery[1] && img.src !== p.gallery[1]) img.src = p.gallery[1];
+                          }}
                           className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-700"
                         />
                       </Link>

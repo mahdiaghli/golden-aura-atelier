@@ -161,6 +161,11 @@ function ProductPage() {
             <img
               src={product.gallery[active]}
               alt={product.name}
+              onError={(e) => {
+                const img = e.currentTarget;
+                const fb = product.gallery[1];
+                if (fb && img.src !== fb) img.src = fb;
+              }}
               className="w-full aspect-square object-cover"
             />
           </div>
