@@ -41,7 +41,7 @@ function CartPage() {
               {items.map(({ product, qty, lineTotal }) => (
                 <li key={product.id} className="py-6 flex gap-6 items-start">
                   <Link to="/shop/$id" params={{ id: product.id }} className="w-28 aspect-square bg-secondary overflow-hidden shrink-0">
-                    <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                    <ProductImage product={product} className="w-full h-full" />
                   </Link>
                   <div className="flex-1">
                     <Link to="/shop/$id" params={{ id: product.id }} className="font-serif text-xl hover:text-gold">
