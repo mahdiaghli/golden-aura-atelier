@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Heart, Send, Share2, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Shell } from "@/components/site/Chrome";
+import { ProductImage } from "@/components/site/ProductImage";
 import { SHOP_SEARCH_DEFAULT } from "@/lib/shop-search";
 import { products, priceBreakdown, formatToman, GOLD_RATE_PER_GRAM, type Product, type Karat } from "@/lib/products";
 import { useCart } from "@/lib/cart";
