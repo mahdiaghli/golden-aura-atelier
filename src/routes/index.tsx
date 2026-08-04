@@ -16,11 +16,11 @@ function ProductCard({ product }: { product: (typeof products)[number] }) {
   return (
     <Link to="/shop/$id" params={{ id: product.id }} className="group block">
       <div className="relative overflow-hidden bg-secondary">
-        <img
-          src={product.image}
-          alt={localizedProduct.name}
-          className="aspect-[4/5] w-full object-cover transition duration-700 group-hover:scale-105"
+        <ProductImage
+          product={{ ...product, name: localizedProduct.name }}
+          className="aspect-[4/5] w-full transition duration-700 group-hover:scale-105"
         />
+
         {product.bestseller && (
           <span className="absolute left-3 top-3 bg-gold px-2 py-1 text-[9px] font-bold uppercase tracking-wider">
             {t("home.bestseller")}
