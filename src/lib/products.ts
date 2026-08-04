@@ -90,14 +90,21 @@ type CatalogRow = {
   imageName?: string;
 };
 
-// Photos exported from the accounting software (folder: zrebuilt.File...)
-// Drop the image files into public/product-images/ and each product picks up its own photo.
+// Photos exported from the accounting software (folder: zrebuilt.File...).
+// Uploaded images are served from the CDN via product-image-map.json; any name
+// not uploaded yet falls back to /product-images/<imageName> then a placeholder.
 export const PRODUCT_IMAGE_DIR = "/product-images";
 
 export function productImageUrl(imageName?: string) {
   if (!imageName || imageName === "nopicture.png") return null;
-  return `${PRODUCT_IMAGE_DIR}/${imageName}`;
+  const mapped = (imageMap as Record<string, string>)[imageName];
+  return mapped ?? `${PRODUCT_IMAGE_DIR}/${imageName}`;
 }
+
+export function hasUploadedPhoto(imageName?: string) {
+  return Boolean(imageName && (imageMap as Record<string, string>)[imageName]);
+}
+
 
 // Deterministic pseudo-random so ratings/badges stay stable between renders.
 function hash(str: string) {
