@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { Shell } from "@/components/site/Chrome";
+import { ProductImage } from "@/components/site/ProductImage";
 import { useCart } from "@/lib/cart";
 import { formatToman } from "@/lib/products";
 import { createOrder } from "@/lib/orders";
