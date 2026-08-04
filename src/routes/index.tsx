@@ -1,6 +1,7 @@
 ﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { Award, BadgeCheck, HeartHandshake, MapPin, ShieldCheck, Sparkles, Truck } from "lucide-react";
 import { Shell } from "@/components/site/Chrome";
+import { ProductImage } from "@/components/site/ProductImage";
 import { useI18n } from "@/lib/i18n/context";
 import { formatTomanLocalized, localizeProduct } from "@/lib/i18n/helpers";
 import { priceBreakdown, products } from "@/lib/products";
