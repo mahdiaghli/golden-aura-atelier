@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Heart, ShoppingBag, Trash2 } from "lucide-react";
 import { Shell } from "@/components/site/Chrome";
+import { ProductImage } from "@/components/site/ProductImage";
 import { useWishlist } from "@/lib/wishlist";
 import { formatToman, priceBreakdown, products } from "@/lib/products";
 
