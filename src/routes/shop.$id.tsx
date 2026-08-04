@@ -158,30 +158,28 @@ function ProductPage() {
       <section className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-2 gap-16">
         <div>
           <div className="bg-secondary overflow-hidden">
-            <img
-              src={product.gallery[active]}
-              alt={product.name}
-              onError={(e) => {
-                const img = e.currentTarget;
-                const fb = product.gallery[1];
-                if (fb && img.src !== fb) img.src = fb;
-              }}
-              className="w-full aspect-square object-cover"
+            <ProductImage
+              product={{ ...product, image: product.gallery[active] ?? product.image }}
+              loading="eager"
+              className="w-full aspect-square"
             />
           </div>
-          <div className="flex gap-3 mt-4">
-            {product.gallery.map((g, i) => (
-              <button
-                key={i}
-                onClick={() => setActive(i)}
-                className={`w-20 aspect-square overflow-hidden bg-secondary border ${
-                  active === i ? "border-gold" : "border-transparent"
-                }`}
-              >
-                <img src={g} alt="" className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
+          {product.gallery.length > 1 && (
+            <div className="flex gap-3 mt-4">
+              {product.gallery.map((g, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActive(i)}
+                  className={`w-20 aspect-square overflow-hidden bg-secondary border ${
+                    active === i ? "border-gold" : "border-transparent"
+                  }`}
+                >
+                  <img src={g} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+
         </div>
 
         <div>
