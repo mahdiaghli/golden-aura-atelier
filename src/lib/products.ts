@@ -1,4 +1,5 @@
 import catalog from "@/data/catalog.json";
+import imageMap from "@/data/product-image-map.json";
 
 export type Karat = "18K" | "21K" | "22K" | "24K";
 export type Category = "rings" | "necklaces" | "bracelets" | "earrings" | "sets" | "bullion";
@@ -90,14 +91,21 @@ type CatalogRow = {
   imageName?: string;
 };
 
-// Photos exported from the accounting software (folder: zrebuilt.File...)
-// Drop the image files into public/product-images/ and each product picks up its own photo.
+// Photos exported from the accounting software (folder: zrebuilt.File...).
+// Uploaded images are served from the CDN via product-image-map.json; any name
+// not uploaded yet falls back to /product-images/<imageName> then a placeholder.
 export const PRODUCT_IMAGE_DIR = "/product-images";
 
 export function productImageUrl(imageName?: string) {
   if (!imageName || imageName === "nopicture.png") return null;
-  return `${PRODUCT_IMAGE_DIR}/${imageName}`;
+  const mapped = (imageMap as Record<string, string>)[imageName];
+  return mapped ?? `${PRODUCT_IMAGE_DIR}/${imageName}`;
 }
+
+export function hasUploadedPhoto(imageName?: string) {
+  return Boolean(imageName && (imageMap as Record<string, string>)[imageName]);
+}
+
 
 // Deterministic pseudo-random so ratings/badges stay stable between renders.
 function hash(str: string) {
@@ -115,7 +123,7 @@ const occasions: Occasion[] = ["everyday", "gift", "party", "wedding", "engageme
 export const products: Product[] = (catalog as CatalogRow[]).map((row, i) => {
   const h = hash(row.id);
   const fallback = catalogImages[i % catalogImages.length]!;
-  const image = productImageUrl(row.imageName) ?? fallback;
+  const image = hasUploadedPhoto(row.imageName) ? productImageUrl(row.imageName)! : fallback;
   const alt = catalogImages[(i + 1) % catalogImages.length]!;
   return {
     ...row,
