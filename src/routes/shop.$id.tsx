@@ -337,7 +337,7 @@ function ProductPage() {
             {related.map((r) => (
               <Link key={r.id} to="/shop/$id" params={{ id: r.id }} className="group">
                 <div className="overflow-hidden bg-secondary mb-4">
-                  <img src={r.image} alt={r.name} className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <ProductImage product={r} className="w-full aspect-[4/5] group-hover:scale-105 transition-transform duration-700" />
                 </div>
                 <h4 className="font-serif text-lg">{r.name}</h4>
                 <p className="text-sm text-onyx/60 mt-1">{formatToman(priceBreakdown(r).total)}</p>
