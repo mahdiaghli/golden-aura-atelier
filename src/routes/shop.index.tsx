@@ -316,7 +316,7 @@ function ShopPage() {
                   return (
                     <div key={piece.id} className="rounded-3xl border border-onyx/10 bg-parchment p-3">
                       <Link to="/shop/$id" params={{ id: piece.id }} className="block overflow-hidden rounded-2xl">
-                        <img src={piece.image} alt={piece.name} className="aspect-[4/5] w-full object-cover transition duration-700 hover:scale-105" />
+                        <ProductImage product={piece} className="aspect-[4/5] w-full transition duration-700 hover:scale-105" />
                       </Link>
                       <div className="p-3 pb-2">
                         <div className="flex items-start justify-between gap-3">
