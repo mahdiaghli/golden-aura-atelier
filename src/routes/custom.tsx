@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, useRef } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/site/Chrome";
+import { createCustomOrder } from "@/lib/requests";
+import { useLiveGold } from "@/lib/live-gold";
 import {
   Camera,
   Check,
@@ -177,22 +179,19 @@ function CustomOrderPage() {
 
     setBusy(true);
     try {
-      // بعداً به API وصل کنید — فعلاً شبیه‌سازی
-      // const form = new FormData();
-      // form.append("service", service);
-      // form.append("karat", karat);
-      // form.append("weight", String(weight));
-      // form.append("textOnItem", textOnItem);
-      // form.append("fontStyle", fontStyle);
-      // form.append("description", description);
-      // form.append("name", name);
-      // form.append("phone", phone);
-      // form.append("city", city);
-      // photos.forEach((p, i) => form.append(`photo_${i}`, p.file));
-      // await fetch("/api/custom-orders", { method: "POST", body: form });
-
-      await new Promise((r) => setTimeout(r, 900));
-      toast.success("درخواست ثبت شد. به‌زودی با شما تماس می‌گیریم.");
+      const order = createCustomOrder({
+        service,
+        karat,
+        weight,
+        textOnItem: textOnItem.trim(),
+        fontStyle,
+        description: description.trim(),
+        name: name.trim(),
+        phone: phone.trim(),
+        city: city.trim(),
+        photos: photos.length,
+      });
+      toast.success(`درخواست ${order.id} ثبت شد. به‌زودی با شما تماس می‌گیریم.`);
       setStep(1);
       setTextOnItem("");
       setDescription("");
