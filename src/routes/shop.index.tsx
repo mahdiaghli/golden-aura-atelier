@@ -123,6 +123,11 @@ function ShopPage() {
             Filter Aurum's archive by category, karat, and weight. Prices update from today's rate,
             transparent to the last gram.
           </p>
+          <p className="mt-3 text-[11px] uppercase tracking-widest text-gold">
+            {isLive
+              ? `Live 18K rate · ${formatToman(rate18)} / gram`
+              : "Loading today's gold rate…"}
+          </p>
           <div className="mt-10 flex flex-wrap gap-2">
             {categories.map((c) => {
               const active = search.category === c.slug;
@@ -141,8 +146,28 @@ function ShopPage() {
               );
             })}
           </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {QUICK_TAGS.map((tag) => {
+              const active = search.tag === tag.id;
+              return (
+                <button
+                  key={tag.id}
+                  onClick={() => update({ tag: tag.id })}
+                  className={`rounded-full px-4 py-1.5 text-[11px] tracking-wide border transition-all ${
+                    active
+                      ? "bg-gold text-onyx border-gold"
+                      : "border-onyx/15 text-onyx/70 hover:border-gold hover:text-gold"
+                  }`}
+                >
+                  {tag.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
+
 
       <section className="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-12">
         <aside className="space-y-10">
