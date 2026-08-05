@@ -118,6 +118,9 @@ export function Nav() {
             <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="hover:text-gold">Shop</Link>
             <Link to="/shop" search={{ ...SHOP_SEARCH_DEFAULT, stock: "made-to-order" }} className="hover:text-gold">Engraving</Link>
             <Link to="/prices" className="hover:text-gold">Market</Link>
+            <Link to="/custom" className="hover:text-gold">custom</Link>
+              <Link to="/investment" className="hover:text-gold">investment</Link>
+
             <Link to="/services" className="hover:text-gold">Services</Link>
           </div>
           <div className="flex items-center gap-5">
@@ -178,44 +181,63 @@ export function Nav() {
                 {menu.label}
                 <ChevronDown size={13} className={open === menu.label ? "rotate-180" : ""} />
               </button>
+{open === menu.label && (
+  <div
+    className="absolute left-1/2 top-full z-50 w-[min(96vw,52rem)] -translate-x-1/2 
+               border-t-0 bg-white shadow-xl 
+               animate-in fade-in slide-in-from-top-2 duration-200"
+    onMouseLeave={() => setOpen(null)}
+  >
+    <div className="border-t-2 border-gold/20" />
+    <div className="px-8 py-12">
+      <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.18em] 
+                        text-onyx/60 transition-colors hover:text-gold">
+            {menu.label}
+          </p>
+          <ul className="space-y-3">
+            {menu.links.map((item) => (
+              <li key={item}>
+                <Link
+                  to={
+                    menu.label === t("nav.services")
+                      ? "/services"
+                      : menu.label === t("nav.mega.resources")
+                        ? item === t("nav.mega.blog")
+                          ? "/blog"
+                          : item === t("nav.mega.faq")
+                            ? "/faq"
+                            : "/shop"
+                        : "/shop"
+                  }
+                  search={
+                    menu.label === t("nav.mega.resources")
+                      ? item === t("nav.mega.buyingGuide")
+                        ? { ...SHOP_SEARCH_DEFAULT, q: item }
+                        : undefined
+                      : menu.label === t("nav.services")
+                        ? undefined
+                        : buildShopSearch(item)
+                  }
+                  className="group flex items-center gap-2 text-[15px] font-light 
+                             text-onyx/75 transition-all duration-200 
+                             hover:text-gold hover:translate-x-1"
+                  onClick={() => setOpen(null)}
+                >
+                  <span className="h-px w-0 bg-gold transition-all duration-200 
+                                   group-hover:w-4" />
+                  {item}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
-              {open === menu.label && (
-                <div className="absolute left-1/2 top-full z-50 mt-2 w-[min(88vw,58rem)] -translate-x-1/2 rounded-[2rem] border border-onyx/10 bg-parchment p-6 shadow-[0_30px_80px_rgba(15,15,15,0.12)]">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    {menu.links.map((item) =>
-                      menu.label === t("nav.services") ? (
-                        <Link
-                          key={item}
-                          to="/services"
-                          search={undefined}
-                          className="group rounded-2xl border border-onyx/10 bg-white/70 p-4 transition-colors hover:border-gold"
-                        >
-                          <p className="text-[10px] uppercase tracking-[0.22em] text-onyx/40">{t("nav.mega.serviceLabel")}</p>
-                          <p className="mt-2 font-serif text-xl group-hover:text-gold">{item}</p>
-                        </Link>
-                      ) : menu.label === t("nav.mega.resources") ? (
-                        <Link
-                          key={item}
-                          to={item === t("nav.mega.blog") ? "/blog" : item === t("nav.mega.faq") ? "/faq" : "/shop"}
-                          search={item === t("nav.mega.buyingGuide") ? { ...SHOP_SEARCH_DEFAULT, q: item } : undefined}
-                          className="rounded-2xl border border-onyx/10 bg-white/70 p-4 transition-colors hover:border-gold"
-                        >
-                          <p className="font-serif text-xl hover:text-gold">{item}</p>
-                        </Link>
-                      ) : (
-                        <Link
-                          key={item}
-                          to="/shop"
-                          search={buildShopSearch(item)}
-                          className="rounded-2xl border border-onyx/10 bg-white/70 p-4 transition-colors hover:border-gold"
-                        >
-                          <p className="font-serif text-xl hover:text-gold">{item}</p>
-                        </Link>
-                      ),
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           ))}
         </div>
