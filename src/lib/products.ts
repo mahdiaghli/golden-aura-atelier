@@ -46,6 +46,10 @@ export type Product = {
   typeLabel?: string;
   size?: string;
   imageName?: string;
+  kids?: boolean;
+  letters?: boolean;
+  chainModel?: string;
+  birthMonth?: string;
 };
 
 export const GOLD_RATE_PER_GRAM: Record<Karat, number> = {
