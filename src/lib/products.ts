@@ -125,21 +125,60 @@ function hash(str: string) {
 const styles: ProductStyle[] = ["classic", "minimal", "modern", "luxury", "vintage"];
 const occasions: Occasion[] = ["everyday", "gift", "party", "wedding", "engagement"];
 
+/** عیارهای اکسل (۷۵۰، ۸۷۵ …) به عیار استاندارد تبدیل می‌شوند */
+export function normalizeKarat(raw: string): Karat {
+  const value = String(raw).replace(/[^0-9.]/g, "");
+  const num = Number(value);
+  if (!Number.isFinite(num)) return "18K";
+  if (num >= 990) return "24K";
+  if (num >= 910) return "22K";
+  if (num >= 870) return "21K";
+  if (num >= 700) return "18K";
+  if (num === 24 || num === 22 || num === 21 || num === 18) return `${num}K` as Karat;
+  return "18K";
+}
+
+export const CHAIN_MODELS = ["cartier", "figaro", "venetian", "rope", "flamingo"] as const;
+export type ChainModel = (typeof CHAIN_MODELS)[number];
+
+export const BIRTH_MONTHS = [
+  "farvardin",
+  "ordibehesht",
+  "khordad",
+  "tir",
+  "mordad",
+  "shahrivar",
+  "mehr",
+  "aban",
+  "azar",
+  "dey",
+  "bahman",
+  "esfand",
+] as const;
+export type BirthMonth = (typeof BIRTH_MONTHS)[number];
+
 export const products: Product[] = (catalog as CatalogRow[]).map((row) => {
   const h = hash(row.id);
   // Only ever show the piece's own photo. If it hasn't been uploaded yet we
   // leave the image empty and the UI renders a neutral placeholder frame,
   // so no product is displayed with another product's picture.
   const image = hasUploadedPhoto(row.imageName) ? productImageUrl(row.imageName)! : "";
+  const karat = normalizeKarat(row.karat as unknown as string);
+  const type = (row.typeLabel ?? "").toLowerCase();
+  const onSale = h % 9 === 0;
+  const isLetter = type.includes("single pendant") || type.includes("pendant");
+  const isKids = row.weight <= 1.5 && (type.includes("bangle") || type.includes("ring") || type.includes("earring"));
+
   return {
     ...row,
+    karat,
     image,
     gallery: image ? [image] : [],
     sku: row.code,
     style: styles[h % styles.length]!,
     occasion: occasions[(h >> 3) % occasions.length]!,
     gemstoneType: "none" as GemstoneType,
-    description: `${row.typeLabel} in ${row.karat} ${row.color?.replace("-", " ") ?? "yellow"} gold, ${row.weight} g${
+    description: `${row.typeLabel} in ${karat} ${row.color?.replace("-", " ") ?? "yellow"} gold, ${row.weight} g${
       row.size ? `, size ${row.size}` : ""
     }. Reference ${row.code}. Priced live against the daily gold rate.`,
     inStock: true,
@@ -155,8 +194,91 @@ export const products: Product[] = (catalog as CatalogRow[]).map((row) => {
     mostSold: h % 17 === 0,
     aiRecommended: h % 7 === 0,
     freeShipping: row.weight > 5,
+    onSale,
+    discount: onSale ? 5 + (h % 3) * 5 : undefined,
+    kids: isKids,
+    letters: isLetter,
+    chainModel: CHAIN_MODELS[h % CHAIN_MODELS.length]!,
+    birthMonth: isLetter ? BIRTH_MONTHS[(h >> 5) % BIRTH_MONTHS.length]! : undefined,
   };
 });
+
+export type QuickTag =
+  | "all"
+  | "kids"
+  | "white-gold"
+  | "letters"
+  | "birth-month"
+  | "cartier"
+  | "figaro"
+  | "venetian"
+  | "rope"
+  | "flamingo"
+  | "lightweight"
+  | "on-sale"
+  | "bestseller"
+  | "newest"
+  | "most-sold"
+  | "ai-picks"
+  | "free-shipping";
+
+export function matchesQuickTag(product: Product, tag: QuickTag): boolean {
+  switch (tag) {
+    case "all":
+      return true;
+    case "kids":
+      return Boolean(product.kids);
+    case "white-gold":
+      return product.color === "white";
+    case "letters":
+      return Boolean(product.letters);
+    case "birth-month":
+      return Boolean(product.birthMonth);
+    case "cartier":
+    case "figaro":
+    case "venetian":
+    case "rope":
+    case "flamingo":
+      return product.chainModel === tag;
+    case "lightweight":
+      return product.weight <= 2;
+    case "on-sale":
+      return Boolean(product.onSale);
+    case "bestseller":
+      return Boolean(product.bestseller);
+    case "newest":
+      return Boolean(product.newest);
+    case "most-sold":
+      return Boolean(product.mostSold);
+    case "ai-picks":
+      return Boolean(product.aiRecommended);
+    case "free-shipping":
+      return Boolean(product.freeShipping);
+    default:
+      return true;
+  }
+}
+
+export const QUICK_TAGS: { id: QuickTag; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "kids", label: "Kids" },
+  { id: "white-gold", label: "White gold" },
+  { id: "letters", label: "Letters & names" },
+  { id: "birth-month", label: "Birth month" },
+  { id: "cartier", label: "Cartier model" },
+  { id: "figaro", label: "Figaro" },
+  { id: "venetian", label: "Venetian" },
+  { id: "rope", label: "Rope" },
+  { id: "flamingo", label: "Flamingo" },
+  { id: "lightweight", label: "Lightweight" },
+  { id: "on-sale", label: "On sale" },
+  { id: "bestseller", label: "Bestsellers" },
+  { id: "most-sold", label: "Most sold" },
+  { id: "newest", label: "New arrivals" },
+  { id: "ai-picks", label: "Recommended" },
+  { id: "free-shipping", label: "Free shipping" },
+];
+
 
 export const categories: { slug: Category | "all"; label: string }[] = [
   { slug: "all", label: "All Collections" },
