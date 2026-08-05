@@ -9,13 +9,13 @@ import {
   Shield,
 } from "lucide-react";
 // از auth واقعی خودتان استفاده کنید
-import { getCurrentUser } from "@/lib/auth";
+import { getSessionUser, isAdmin } from "@/lib/auth";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: () => {
-    const user = getCurrentUser();
-    // نقش ادمین — فیلد را با مدل خودتان هماهنگ کنید
-    if (!user || user.role !== "admin") {
+    if (typeof window === "undefined") return;
+    const user = getSessionUser();
+    if (!isAdmin(user)) {
       throw redirect({ to: "/login" });
     }
   },
@@ -25,10 +25,11 @@ export const Route = createFileRoute("/admin")({
 const NAV = [
   { to: "/admin", label: "داشبورد", icon: LayoutDashboard, exact: true },
   { to: "/admin/orders", label: "سفارشات و تأیید", icon: Package },
+  { to: "/admin/requests", label: "درخواست‌ها", icon: Package },
   { to: "/admin/users", label: "کاربران", icon: Users },
   { to: "/admin/transactions", label: "معاملات و سود", icon: LineChart },
   { to: "/admin/shipping", label: "ارسال", icon: Truck },
-] as const;
+] as unknown as { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[];
 
 function AdminLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });

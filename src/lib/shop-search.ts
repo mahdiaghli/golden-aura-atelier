@@ -1,4 +1,4 @@
-import type { Category, Karat } from "@/lib/products";
+import type { Category, Karat, QuickTag } from "@/lib/products";
 
 export type ShopSearch = {
   category: Category | "all";
@@ -28,6 +28,7 @@ export type ShopSearch = {
   minMaking: number;
   maxMaking: number;
   sort: "featured" | "price-asc" | "price-desc" | "weight-desc";
+  tag: QuickTag;
   q: string;
 };
 
@@ -47,5 +48,6 @@ export const SHOP_SEARCH_DEFAULT: ShopSearch = {
   minMaking: 0,
   maxMaking: 100,
   sort: "featured",
+  tag: "all",
   q: "",
 };

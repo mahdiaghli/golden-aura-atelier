@@ -1,10 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/site/Chrome";
-// وقتی gold.functions آماده شد این را فعال کنید:
-// import { getInvestData, createGoldOrder } from "@/lib/gold.functions";
-// import { useSession } from "@/lib/use-session";
+import { useLiveGold } from "@/lib/live-gold";
+import { createGoldOrder, goldHoldings, type GoldOrder } from "@/lib/requests";
+import { getSessionUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/investment")({
   head: () => ({
@@ -29,34 +29,33 @@ const fmtDec = (n: number, d = 4) =>
     maximumFractionDigits: d,
   }).format(n);
 
-/* ——— دادهٔ موقت ——— */
-const MOCK_RATE_24 = 7_850_000;
-const MOCK_RATE_18 = Math.round(MOCK_RATE_24 * (18 / 24));
-
-const MOCK_PRODUCTS = [
+const GOLD_BALLS = [
   { id: "g-0.5", name: "گوی طلا ۰٫۵ گرم", weight_grams: 0.5, karat: "24K", premium_pct: 3, image_url: null as string | null },
   { id: "g-1", name: "گوی طلا ۱ گرم", weight_grams: 1, karat: "24K", premium_pct: 2.5, image_url: null },
   { id: "g-2.5", name: "گوی طلا ۲٫۵ گرم", weight_grams: 2.5, karat: "24K", premium_pct: 2, image_url: null },
   { id: "g-5", name: "گوی طلا ۵ گرم", weight_grams: 5, karat: "24K", premium_pct: 1.8, image_url: null },
 ];
 
-/** موجودی فرضی کاربر برای داشبورد */
-const MOCK_HOLDINGS = {
-  grams24: 23.58,
-  buyValue: 163_400_000, // ارزش خرید اولیه
-  buyDate: "2025-11-12",
-};
-
 const AMOUNT_PRESETS = [1_000_000, 2_000_000, 5_000_000, 10_000_000, 25_000_000, 50_000_000];
 
 type ChartRange = "1d" | "1w" | "1m" | "3m" | "1y" | "all";
 
 function CatalogPage() {
-  const session = null as { id: string } | null; // بعداً useSession
   const navigate = useNavigate();
+  const { rate18, rate24, isLive } = useLiveGold();
+  const [session, setSession] = useState<{ id: string } | null>(null);
+  const [orders, setOrders] = useState<GoldOrder[]>([]);
+
+  const refresh = () => setOrders(goldHoldings().orders);
+
+  useEffect(() => {
+    const user = getSessionUser();
+    setSession(user ? { id: user.email } : null);
+    refresh();
+  }, []);
 
   const [mainTab, setMainTab] = useState<"product" | "amount" | "dashboard">("amount");
-  const [selected, setSelected] = useState<string | null>(MOCK_PRODUCTS[0]?.id ?? null);
+  const [selected, setSelected] = useState<string | null>(GOLD_BALLS[0]?.id ?? null);
   const [quantity, setQuantity] = useState(1);
   const [amount, setAmount] = useState(5_000_000);
   const [delivery, setDelivery] = useState<"vault" | "shipping">("vault");
@@ -66,9 +65,7 @@ function CatalogPage() {
   const [sellGrams, setSellGrams] = useState(1);
   const [ballRequest, setBallRequest] = useState<number | null>(null);
 
-  const rate24 = MOCK_RATE_24;
-  const rate18 = MOCK_RATE_18;
-  const products = MOCK_PRODUCTS;
+  const products = GOLD_BALLS;
   const product = products.find((p) => p.id === selected) ?? products[0] ?? null;
 
   const totalProduct = product
@@ -80,16 +77,32 @@ function CatalogPage() {
   /** معادل ۱۸ عیار (برای نمایش) */
   const gramsForAmount18 = rate18 > 0 ? amount / rate18 : 0;
 
-  /* موجودی و سود */
-  const holdingsGrams = MOCK_HOLDINGS.grams24;
+  /* موجودی و سود — از سفارش‌های ثبت‌شده */
+  const holdings = useMemo(() => {
+    let grams = 0;
+    let buyValue = 0;
+    orders.forEach((order) => {
+      if (order.kind === "amount" || order.kind === "product") {
+        grams += order.grams;
+        buyValue += order.amount;
+      }
+      if (order.kind === "sell") {
+        grams -= order.grams;
+        buyValue -= order.amount;
+      }
+    });
+    return { grams: Math.max(0, grams), buyValue: Math.max(0, buyValue) };
+  }, [orders]);
+
+  const holdingsGrams = holdings.grams;
   const holdingsValueToday = holdingsGrams * rate24;
-  const holdingsProfit = holdingsValueToday - MOCK_HOLDINGS.buyValue;
+  const holdingsProfit = holdingsValueToday - holdings.buyValue;
   const holdingsProfitPct =
-    MOCK_HOLDINGS.buyValue > 0 ? (holdingsProfit / MOCK_HOLDINGS.buyValue) * 100 : 0;
+    holdings.buyValue > 0 ? (holdingsProfit / holdings.buyValue) * 100 : 0;
 
   /* نقاط نمودار ساده بر اساس بازه */
   const chartPoints = useMemo(() => {
-    const base = MOCK_HOLDINGS.buyValue;
+    const base = holdings.buyValue || holdingsValueToday;
     const end = holdingsValueToday;
     const steps: Record<ChartRange, number> = {
       "1d": 8,
@@ -109,22 +122,43 @@ function CatalogPage() {
     }
     pts[pts.length - 1] = end;
     return pts;
-  }, [chartRange, holdingsValueToday]);
+  }, [chartRange, holdingsValueToday, holdings.buyValue]);
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!session) {
-      navigate({ to: "/auth", search: { redirect: "/catalog" } });
+      toast.error("برای ثبت سفارش ابتدا وارد حساب شوید.");
+      navigate({ to: "/login" });
       return;
     }
     setBusy(true);
     try {
-      await new Promise((r) => setTimeout(r, 700));
-      toast.success(
-        mainTab === "amount"
-          ? `سفارش ${fmtDec(gramsForAmount24, 4)} گرم ثبت شد.`
-          : "سفارش گوی ثبت شد.",
-      );
+      if (mainTab === "amount") {
+        if (amount <= 0) throw new Error("مبلغ نامعتبر است");
+        createGoldOrder({
+          kind: "amount",
+          grams: Number(gramsForAmount24.toFixed(4)),
+          amount,
+          rate: rate24,
+          delivery,
+          shipMethod: delivery === "shipping" ? shipMethod : undefined,
+        });
+        toast.success(`سفارش ${fmtDec(gramsForAmount24, 4)} گرم ثبت شد.`);
+      } else {
+        if (!product) throw new Error("محصولی انتخاب نشده است");
+        createGoldOrder({
+          kind: "product",
+          grams: product.weight_grams * quantity,
+          amount: Math.round(totalProduct),
+          rate: rate24,
+          productName: product.name,
+          quantity,
+          delivery,
+          shipMethod: delivery === "shipping" ? shipMethod : undefined,
+        });
+        toast.success("سفارش گوی ثبت شد.");
+      }
+      refresh();
       setMainTab("dashboard");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "ثبت سفارش ناموفق بود");
@@ -139,7 +173,9 @@ function CatalogPage() {
       toast.error("مقدار نامعتبر است");
       return;
     }
-    toast.success(`درخواست فروش ${fmtDec(g, 3)} گرم ثبت شد (نسخه آزمایشی).`);
+    createGoldOrder({ kind: "sell", grams: Number(g.toFixed(4)), amount: Math.round(g * rate24), rate: rate24 });
+    refresh();
+    toast.success(`درخواست فروش ${fmtDec(g, 3)} گرم ثبت شد.`);
   };
 
   const handleBallRequest = (w: number) => {
@@ -148,6 +184,8 @@ function CatalogPage() {
       return;
     }
     setBallRequest(w);
+    createGoldOrder({ kind: "ball", grams: w, amount: Math.round(w * rate24), rate: rate24 });
+    refresh();
     toast.success(`درخواست ساخت گوی ${w} گرمی ثبت شد.`);
   };
 
@@ -168,6 +206,7 @@ function CatalogPage() {
             <div className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-white/70 px-5 py-2.5 text-sm">
               <span className="text-onyx/50">۲۴ عیار</span>
               <strong className="text-gold">{fmt(rate24)} تومان</strong>
+              <span className="text-[10px] text-onyx/40">{isLive ? "قیمت لحظه‌ای" : "در حال دریافت…"}</span>
             </div>
             <div className="inline-flex items-center gap-2 rounded-full border border-onyx/15 bg-white/50 px-5 py-2.5 text-sm">
               <span className="text-onyx/50">۱۸ عیار</span>
@@ -406,7 +445,7 @@ function CatalogPage() {
               </div>
 
               <div className="mt-6 grid gap-4 sm:grid-cols-4">
-                <MiniStat label="ارزش خرید" value={fmt(MOCK_HOLDINGS.buyValue)} />
+                <MiniStat label="ارزش خرید" value={fmt(holdings.buyValue)} />
                 <MiniStat label="ارزش امروز" value={fmt(holdingsValueToday)} />
                 <MiniStat
                   label="سود"
