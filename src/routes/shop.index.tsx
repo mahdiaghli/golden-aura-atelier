@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { Shell } from "@/components/site/Chrome";
 import { ProductImage } from "@/components/site/ProductImage";
 import { SHOP_SEARCH_DEFAULT, type ShopSearch } from "@/lib/shop-search";
-import { products, categories, priceBreakdown, formatToman, type Category, type Karat } from "@/lib/products";
+import { products, categories, priceBreakdown, formatToman, matchesQuickTag, QUICK_TAGS, type QuickTag } from "@/lib/products";
+import { useLiveGold } from "@/lib/live-gold";
 import { useWishlist } from "@/lib/wishlist";
 
 const DEFAULTS: ShopSearch = SHOP_SEARCH_DEFAULT;
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/shop/")({
     minMaking: Number(raw.minMaking) || DEFAULTS.minMaking,
     maxMaking: Number(raw.maxMaking) || DEFAULTS.maxMaking,
     sort: (raw.sort as ShopSearch["sort"]) || DEFAULTS.sort,
+    tag: (raw.tag as QuickTag) || DEFAULTS.tag,
     q: (raw.q as string) || "",
   }),
   head: () => ({
@@ -44,6 +46,7 @@ function ShopPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const { has, toggle } = useWishlist();
+  const { rate18, isLive } = useLiveGold();
 
   const [visible, setVisible] = useState(24);
   const [engravingText, setEngravingText] = useState("");
@@ -100,14 +103,15 @@ function ShopPage() {
       if (makingPct < search.minMaking || makingPct > search.maxMaking) return false;
       const total = priceBreakdown(p).total;
       if (total < search.min || total > search.max) return false;
-      if (search.q && !p.name.toLowerCase().includes(search.q.toLowerCase())) return false;
+      if (search.tag !== "all" && !matchesQuickTag(p, search.tag)) return false;
+      if (search.q && !`${p.name} ${p.sku} ${p.typeLabel ?? ""}`.toLowerCase().includes(search.q.toLowerCase())) return false;
       return true;
     });
     if (search.sort === "price-asc") list = [...list].sort((a, b) => priceBreakdown(a).total - priceBreakdown(b).total);
     if (search.sort === "price-desc") list = [...list].sort((a, b) => priceBreakdown(b).total - priceBreakdown(a).total);
     if (search.sort === "weight-desc") list = [...list].sort((a, b) => b.weight - a.weight);
     return list;
-  }, [search]);
+  }, [search, rate18]);
 
   return (
     <Shell>
@@ -118,6 +122,11 @@ function ShopPage() {
           <p className="text-onyx/60 mt-6 max-w-xl font-light">
             Filter Aurum's archive by category, karat, and weight. Prices update from today's rate,
             transparent to the last gram.
+          </p>
+          <p className="mt-3 text-[11px] uppercase tracking-widest text-gold">
+            {isLive
+              ? `Live 18K rate · ${formatToman(rate18)} / gram`
+              : "Loading today's gold rate…"}
           </p>
           <div className="mt-10 flex flex-wrap gap-2">
             {categories.map((c) => {
@@ -137,8 +146,28 @@ function ShopPage() {
               );
             })}
           </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {QUICK_TAGS.map((tag) => {
+              const active = search.tag === tag.id;
+              return (
+                <button
+                  key={tag.id}
+                  onClick={() => update({ tag: tag.id })}
+                  className={`rounded-full px-4 py-1.5 text-[11px] tracking-wide border transition-all ${
+                    active
+                      ? "bg-gold text-onyx border-gold"
+                      : "border-onyx/15 text-onyx/70 hover:border-gold hover:text-gold"
+                  }`}
+                >
+                  {tag.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
+
 
       <section className="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-12">
         <aside className="space-y-10">
