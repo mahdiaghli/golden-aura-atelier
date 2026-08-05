@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { Shell } from "@/components/site/Chrome";
 import { ProductImage } from "@/components/site/ProductImage";
 import { SHOP_SEARCH_DEFAULT, type ShopSearch } from "@/lib/shop-search";
-import { products, categories, priceBreakdown, formatToman, type Category, type Karat } from "@/lib/products";
+import { products, categories, priceBreakdown, formatToman, matchesQuickTag, QUICK_TAGS, type QuickTag } from "@/lib/products";
+import { useLiveGold } from "@/lib/live-gold";
 import { useWishlist } from "@/lib/wishlist";
 
 const DEFAULTS: ShopSearch = SHOP_SEARCH_DEFAULT;
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/shop/")({
     minMaking: Number(raw.minMaking) || DEFAULTS.minMaking,
     maxMaking: Number(raw.maxMaking) || DEFAULTS.maxMaking,
     sort: (raw.sort as ShopSearch["sort"]) || DEFAULTS.sort,
+    tag: (raw.tag as QuickTag) || DEFAULTS.tag,
     q: (raw.q as string) || "",
   }),
   head: () => ({
@@ -44,6 +46,7 @@ function ShopPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const { has, toggle } = useWishlist();
+  const { rate18, isLive } = useLiveGold();
 
   const [visible, setVisible] = useState(24);
   const [engravingText, setEngravingText] = useState("");
@@ -100,14 +103,15 @@ function ShopPage() {
       if (makingPct < search.minMaking || makingPct > search.maxMaking) return false;
       const total = priceBreakdown(p).total;
       if (total < search.min || total > search.max) return false;
-      if (search.q && !p.name.toLowerCase().includes(search.q.toLowerCase())) return false;
+      if (search.tag !== "all" && !matchesQuickTag(p, search.tag)) return false;
+      if (search.q && !`${p.name} ${p.sku} ${p.typeLabel ?? ""}`.toLowerCase().includes(search.q.toLowerCase())) return false;
       return true;
     });
     if (search.sort === "price-asc") list = [...list].sort((a, b) => priceBreakdown(a).total - priceBreakdown(b).total);
     if (search.sort === "price-desc") list = [...list].sort((a, b) => priceBreakdown(b).total - priceBreakdown(a).total);
     if (search.sort === "weight-desc") list = [...list].sort((a, b) => b.weight - a.weight);
     return list;
-  }, [search]);
+  }, [search, rate18]);
 
   return (
     <Shell>
