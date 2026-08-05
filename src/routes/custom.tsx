@@ -113,6 +113,16 @@ function CustomOrderPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   const selectedService = SERVICES.find((s) => s.id === service)!;
+  const { rates, isLive } = useLiveGold();
+
+  /** برآورد بر اساس قیمت لحظه‌ای طلا + اجرت تقریبی ۱۵٪ + ۹٪ مالیات */
+  const estimate = useMemo(() => {
+    const karatKey = (karat === "24" ? "24K" : karat === "21" ? "21K" : "18K") as keyof typeof rates;
+    const gold = weight * rates[karatKey];
+    const making = gold * 0.15;
+    const vat = (gold + making) * 0.09;
+    return { gold, making, vat, total: gold + making + vat };
+  }, [karat, weight, rates]);
 
   const estimateNote = useMemo(() => {
     if (service === "name-plaque") return "قیمت نهایی پس از تأیید طرح و وزن اعلام می‌شود.";
@@ -558,6 +568,15 @@ function CustomOrderPage() {
             <Row label="وزن تقریبی" value={`${weight} گرم`} />
             {textOnItem && <Row label="متن" value={textOnItem} />}
             <Row label="عکس‌ها" value={`${photos.length} فایل`} />
+            <div className="border-t border-onyx/10 pt-4">
+              <p className="text-[10px] uppercase tracking-widest text-onyx/45">
+                برآورد با نرخ {isLive ? "لحظه‌ای" : "پیش‌فرض"} طلا
+              </p>
+              <Row label="ارزش طلا" value={`${fmt(estimate.gold)} تومان`} />
+              <Row label="اجرت تقریبی (۱۵٪)" value={`${fmt(estimate.making)} تومان`} />
+              <Row label="مالیات (۹٪)" value={`${fmt(estimate.vat)} تومان`} />
+              <Row label="جمع تقریبی" value={`${fmt(estimate.total)} تومان`} />
+            </div>
             <p className="border-t border-onyx/10 pt-4 text-[11px] leading-relaxed text-onyx/50">
               {estimateNote}
             </p>
