@@ -445,7 +445,7 @@ function CatalogPage() {
               </div>
 
               <div className="mt-6 grid gap-4 sm:grid-cols-4">
-                <MiniStat label="ارزش خرید" value={fmt(MOCK_HOLDINGS.buyValue)} />
+                <MiniStat label="ارزش خرید" value={fmt(holdings.buyValue)} />
                 <MiniStat label="ارزش امروز" value={fmt(holdingsValueToday)} />
                 <MiniStat
                   label="سود"
