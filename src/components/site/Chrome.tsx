@@ -119,6 +119,7 @@ export function Nav() {
             <Link to="/shop" search={{ ...SHOP_SEARCH_DEFAULT, stock: "made-to-order" }} className="hover:text-gold">Engraving</Link>
             <Link to="/prices" className="hover:text-gold">Market</Link>
             <Link to="/custom" className="hover:text-gold">custom</Link>
+            <Link to="/try-on" className="hover:text-gold">Try on</Link>
               <Link to="/investment" className="hover:text-gold">investment</Link>
 
             <Link to="/services" className="hover:text-gold">Services</Link>

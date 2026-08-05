@@ -129,6 +129,7 @@ export const fa: Messages = {
     completeEyebrow: "استایل کامل",
     completeTitle: "ظاهر خود را کامل کنید",
   },
+  
   shop: {
     metaTitle: "فروش همه زیورآلات طلا و شمش — Aurum",
     eyebrow: "مجموعه",
