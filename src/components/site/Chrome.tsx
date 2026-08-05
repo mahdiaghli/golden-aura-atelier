@@ -5,7 +5,9 @@ import { useCart } from "@/lib/cart";
 import { useI18n } from "@/lib/i18n/context";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { SHOP_SEARCH_DEFAULT } from "@/lib/shop-search";
-import { fetchMarketSnapshot, formatMarketPrice, type MarketSnapshot } from "@/lib/market-prices";
+import { formatMarketPrice } from "@/lib/market-prices";
+import { useLiveGold } from "@/lib/live-gold";
+import { getSessionUser, isAdmin, type AuthUser } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
 
 const NESHAN_URL =
@@ -31,15 +33,7 @@ function buildShopSearch(item: string) {
 
 export function Ticker() {
   const { messages } = useI18n();
-  const [market, setMarket] = useState<MarketSnapshot | null>(null);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchMarketSnapshot(controller.signal)
-      .then(setMarket)
-      .catch(() => setMarket(null));
-    return () => controller.abort();
-  }, []);
+  const { snapshot: market } = useLiveGold();
 
   const items = market?.items.length
     ? market.items.map((item) => ({
@@ -75,6 +69,12 @@ export function Nav() {
   const { t } = useI18n();
   const [open, setOpen] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sessionUser, setSessionUser] = useState<AuthUser | null>(null);
+  const admin = isAdmin(sessionUser);
+
+  useEffect(() => {
+    setSessionUser(getSessionUser());
+  }, []);
 
   const serviceAnchors = useMemo(
     () => [
@@ -122,6 +122,9 @@ export function Nav() {
               <Link to="/investment" className="hover:text-gold">investment</Link>
 
             <Link to="/services" className="hover:text-gold">Services</Link>
+            {admin && (
+              <Link to="/admin" className="font-bold text-gold hover:text-onyx">Admin panel</Link>
+            )}
           </div>
           <div className="flex items-center gap-5">
             <a href="tel:09153145726" className="hover:text-gold">0915 314 5726</a>
@@ -264,6 +267,11 @@ export function Nav() {
             </div>
 
             <div className="grid gap-2">
+              {admin && (
+                <Link to="/admin" onClick={() => setMobileOpen(false)} className="rounded-2xl border border-gold bg-gold/10 px-4 py-3 text-sm font-bold text-gold">
+                  Admin panel
+                </Link>
+              )}
               <Link to="/contact" onClick={() => setMobileOpen(false)} className="rounded-2xl border border-onyx/10 px-4 py-3 text-sm transition-colors hover:border-gold hover:text-gold">
                 {t("nav.contact")}
               </Link>
