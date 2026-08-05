@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Heart, Send, Share2, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Shell } from "@/components/site/Chrome";
+import { ProductImage } from "@/components/site/ProductImage";
 import { SHOP_SEARCH_DEFAULT } from "@/lib/shop-search";
 import { products, priceBreakdown, formatToman, GOLD_RATE_PER_GRAM, type Product, type Karat } from "@/lib/products";
 import { useCart } from "@/lib/cart";
@@ -158,30 +159,28 @@ function ProductPage() {
       <section className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-2 gap-16">
         <div>
           <div className="bg-secondary overflow-hidden">
-            <img
-              src={product.gallery[active]}
-              alt={product.name}
-              onError={(e) => {
-                const img = e.currentTarget;
-                const fb = product.gallery[1];
-                if (fb && img.src !== fb) img.src = fb;
-              }}
-              className="w-full aspect-square object-cover"
+            <ProductImage
+              product={{ ...product, image: product.gallery[active] ?? product.image }}
+              loading="eager"
+              className="w-full aspect-square"
             />
           </div>
-          <div className="flex gap-3 mt-4">
-            {product.gallery.map((g, i) => (
-              <button
-                key={i}
-                onClick={() => setActive(i)}
-                className={`w-20 aspect-square overflow-hidden bg-secondary border ${
-                  active === i ? "border-gold" : "border-transparent"
-                }`}
-              >
-                <img src={g} alt="" className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
+          {product.gallery.length > 1 && (
+            <div className="flex gap-3 mt-4">
+              {product.gallery.map((g, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActive(i)}
+                  className={`w-20 aspect-square overflow-hidden bg-secondary border ${
+                    active === i ? "border-gold" : "border-transparent"
+                  }`}
+                >
+                  <img src={g} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+
         </div>
 
         <div>
@@ -338,7 +337,7 @@ function ProductPage() {
             {related.map((r) => (
               <Link key={r.id} to="/shop/$id" params={{ id: r.id }} className="group">
                 <div className="overflow-hidden bg-secondary mb-4">
-                  <img src={r.image} alt={r.name} className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <ProductImage product={r} className="w-full aspect-[4/5] group-hover:scale-105 transition-transform duration-700" />
                 </div>
                 <h4 className="font-serif text-lg">{r.name}</h4>
                 <p className="text-sm text-onyx/60 mt-1">{formatToman(priceBreakdown(r).total)}</p>
