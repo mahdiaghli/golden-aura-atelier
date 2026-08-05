@@ -8,13 +8,12 @@ export type GemstoneType = "none" | "diamond" | "emerald" | "ruby" | "pearl";
 export type ProductStyle = "classic" | "minimal" | "modern" | "luxury" | "vintage";
 export type Occasion = "everyday" | "engagement" | "wedding" | "party" | "gift" | "investment";
 
-
 export type Product = {
   id: string;
   name: string;
   category: Category;
   karat: Karat;
-  weight: number; // grams
+  weight: number;
   makingPct: number;
   gender: "women" | "men" | "children" | "unisex";
   gemstone?: string;
@@ -26,19 +25,18 @@ export type Product = {
   gallery: string[];
   description: string;
   sku: string;
-  // New attributes
   onSale?: boolean;
-  discount?: number; // percentage
+  discount?: number;
   freeShipping?: boolean;
   customizable?: boolean;
   sizeAdjustable?: boolean;
   expressDelivery?: boolean;
   madeToOrder?: boolean;
   inStock?: boolean;
-  warranty?: string; // warranty description
+  warranty?: string;
   insurance?: boolean;
   returnable?: boolean;
-  rating?: number; // 0-5
+  rating?: number;
   reviews?: number;
   bestseller?: boolean;
   newest?: boolean;
@@ -50,7 +48,6 @@ export type Product = {
   imageName?: string;
 };
 
-// Live rate used for price calc (Toman per gram)
 export const GOLD_RATE_PER_GRAM: Record<Karat, number> = {
   "18K": 3_452_000,
   "21K": 4_020_000,
@@ -72,6 +69,7 @@ export function formatToman(n: number) {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(n)) + " T";
 }
 
+// عکس‌های fallback
 const catalogImages = Array.from({ length: 22 }, (_, index) =>
   `/products/catalog/product-${String(index + 1).padStart(2, "0")}.webp`,
 );
@@ -91,23 +89,34 @@ type CatalogRow = {
   imageName?: string;
 };
 
-// Photos exported from the accounting software (folder: zrebuilt.File...).
-// Uploaded images are served from the CDN via product-image-map.json; any name
-// not uploaded yet falls back to /product-images/<imageName> then a placeholder.
 export const PRODUCT_IMAGE_DIR = "/product-images";
 
-export function productImageUrl(imageName?: string) {
-  if (!imageName || imageName === "nopicture.png") return null;
+/**
+ * آدرس عکس محصول را برمی‌گرداند.
+ * اولویت:
+ * 1. مپ CDN (product-image-map.json)
+ * 2. فایل محلی در public/product-images/
+ * 3. null (تا در کامپوننت placeholder نشان داده شود)
+ */
+export function productImageUrl(imageName?: string): string | null {
+  if (!imageName || imageName === "nopicture.png" || imageName.trim() === "") {
+    return null;
+  }
+
+  // اگر در مپ CDN وجود داشت
   const mapped = (imageMap as Record<string, string>)[imageName];
-  return mapped ?? `${PRODUCT_IMAGE_DIR}/${imageName}`;
+  if (mapped) return mapped;
+
+  // فایل محلی
+  return `${PRODUCT_IMAGE_DIR}/${imageName}`;
 }
 
-export function hasUploadedPhoto(imageName?: string) {
-  return Boolean(imageName && (imageMap as Record<string, string>)[imageName]);
+export function hasUploadedPhoto(imageName?: string): boolean {
+  if (!imageName || imageName === "nopicture.png") return false;
+  return Boolean((imageMap as Record<string, string>)[imageName]);
 }
 
-
-// Deterministic pseudo-random so ratings/badges stay stable between renders.
+// hash برای تولید مقادیر ثابت
 function hash(str: string) {
   let h = 2166136261;
   for (let i = 0; i < str.length; i++) {
@@ -123,17 +132,19 @@ const occasions: Occasion[] = ["everyday", "gift", "party", "wedding", "engageme
 export const products: Product[] = (catalog as CatalogRow[]).map((row, i) => {
   const h = hash(row.id);
   const fallback = catalogImages[i % catalogImages.length]!;
-  const image = hasUploadedPhoto(row.imageName) ? productImageUrl(row.imageName)! : fallback;
+  const realImage = productImageUrl(row.imageName);
+  const image = realImage ?? fallback;
   const alt = catalogImages[(i + 1) % catalogImages.length]!;
+
   return {
     ...row,
     image,
-    gallery: [image, alt],
+    gallery: realImage ? [realImage, alt] : [fallback, alt],
     sku: row.code,
     style: styles[h % styles.length]!,
     occasion: occasions[(h >> 3) % occasions.length]!,
-    gemstoneType: "none",
-    description: `${row.typeLabel} in ${row.karat} ${row.color.replace("-", " ")} gold, ${row.weight} g${
+    gemstoneType: "none" as GemstoneType,
+    description: `${row.typeLabel} in ${row.karat} ${row.color?.replace("-", " ") ?? "yellow"} gold, ${row.weight} g${
       row.size ? `, size ${row.size}` : ""
     }. Reference ${row.code}. Priced live against the daily gold rate.`,
     inStock: true,
