@@ -97,7 +97,7 @@ function Home() {
               <Link to="/shop" className="bg-onyx px-7 py-4 text-[10px] font-bold uppercase tracking-widest text-parchment hover:bg-gold hover:text-onyx transition-colors duration-300">
                 {t("home.heroCtaShop")}
               </Link>
-              <Link to="/signup" className="border border-onyx/30 px-7 py-4 text-[10px] font-bold uppercase tracking-widest hover:border-gold hover:text-gold transition-colors duration-300">
+              <Link to="/investment" className="border border-onyx/30 px-7 py-4 text-[10px] font-bold uppercase tracking-widest hover:border-gold hover:text-gold transition-colors duration-300">
                 {t("home.heroCtaConsultation")}
               </Link>
             </div>
