@@ -98,7 +98,7 @@ export const fa: Messages = {
     heroTitle: "طلایی که بخشی از داستان شما می‌شود.",
     heroSubtitle: "قطعات تازه، طلای سرمایه‌گذاری و یادگارهای شخصی را با قیمت‌گذاری شفاف و به‌روز کشف کنید.",
     heroCtaShop: "مشاهده مجموعه",
-    heroCtaConsultation: "رزرو مشاوره",
+    heroCtaConsultation: "سرمایه‌گذاری در طلا",
     bestseller: "پرفروش",
     shopAll: "مشاهده همه",
     newestEyebrow: "تازه رسیده",
