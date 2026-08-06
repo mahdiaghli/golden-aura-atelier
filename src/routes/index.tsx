@@ -15,19 +15,21 @@ function ProductCard({ product }: { product: (typeof products)[number] }) {
 
   return (
     <Link to="/shop/$id" params={{ id: product.id }} className="group block">
-      <div className="relative overflow-hidden bg-secondary">
+      <div className="relative overflow-hidden rounded-[1.25rem] bg-secondary ring-1 ring-onyx/5 transition-shadow duration-500 group-hover:shadow-[0_24px_50px_-30px_rgba(0,0,0,0.55)]">
         <ProductImage
           product={{ ...product, name: localizedProduct.name }}
           className="aspect-[4/5] w-full transition duration-700 group-hover:scale-105"
         />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-onyx/25 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
         {product.bestseller && (
-          <span className="absolute left-3 top-3 bg-gold px-2 py-1 text-[9px] font-bold uppercase tracking-wider">
+          <span className="absolute left-3 top-3 rounded-full bg-gold px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider">
             {t("home.bestseller")}
           </span>
         )}
       </div>
       <div className="pt-4">
+
         <h3 className="text-lg font-medium tracking-tight group-hover:text-gold transition-colors duration-350">{localizedProduct.name}</h3>
         <p className="mt-1 text-[10px] uppercase tracking-widest text-onyx/50">
           {product.karat} · {product.weight}g
