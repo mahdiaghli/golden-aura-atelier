@@ -15,19 +15,21 @@ function ProductCard({ product }: { product: (typeof products)[number] }) {
 
   return (
     <Link to="/shop/$id" params={{ id: product.id }} className="group block">
-      <div className="relative overflow-hidden bg-secondary">
+      <div className="relative overflow-hidden rounded-[1.25rem] bg-secondary ring-1 ring-onyx/5 transition-shadow duration-500 group-hover:shadow-[0_24px_50px_-30px_rgba(0,0,0,0.55)]">
         <ProductImage
           product={{ ...product, name: localizedProduct.name }}
           className="aspect-[4/5] w-full transition duration-700 group-hover:scale-105"
         />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-onyx/25 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
         {product.bestseller && (
-          <span className="absolute left-3 top-3 bg-gold px-2 py-1 text-[9px] font-bold uppercase tracking-wider">
+          <span className="absolute left-3 top-3 rounded-full bg-gold px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider">
             {t("home.bestseller")}
           </span>
         )}
       </div>
       <div className="pt-4">
+
         <h3 className="text-lg font-medium tracking-tight group-hover:text-gold transition-colors duration-350">{localizedProduct.name}</h3>
         <p className="mt-1 text-[10px] uppercase tracking-widest text-onyx/50">
           {product.karat} · {product.weight}g
@@ -86,18 +88,18 @@ function Home() {
     <Shell>
       <section className="relative min-h-[660px] overflow-hidden">
         <img src="/products/hero-ring.jpg" alt={t("home.heroImageAlt")} className="absolute inset-0 h-full w-full object-cover" />
-<div className="absolute inset-0 bg-gradient-to-l from-parchment/40 via-parchment/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-l from-parchment/40 via-parchment/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-parchment via-parchment/10 to-transparent" />
         <div className="relative mx-auto flex min-h-[660px] max-w-7xl items-center px-6">
-          <div className="max-w-2xl">
+          <div className="max-w-2xl animate-fade-up">
             <p className="text-[11px] uppercase tracking-[.38em] text-gold">{t("home.heroEyebrow")}</p>
-            {/* کاهش سایز هدر اصلی (طلایی که بخشی از داستان شما می‌شود) به text-3xl و در دسکتاپ md:text-5xl */}
-            <h1 className="mt-5 text-3xl md:text-5xl font-semibold leading-[1.2] tracking-tight">{t("home.heroTitle")}</h1>
+            <h1 className="mt-5 text-3xl md:text-5xl font-semibold leading-[1.35] tracking-tight">{t("home.heroTitle")}</h1>
             <p className="mt-7 max-w-lg text-base leading-relaxed text-onyx/70">{t("home.heroSubtitle")}</p>
             <div className="mt-9 flex flex-wrap gap-4">
               <Link to="/shop" className="bg-onyx px-7 py-4 text-[10px] font-bold uppercase tracking-widest text-parchment hover:bg-gold hover:text-onyx transition-colors duration-300">
                 {t("home.heroCtaShop")}
               </Link>
-              <Link to="/signup" className="border border-onyx/30 px-7 py-4 text-[10px] font-bold uppercase tracking-widest hover:border-gold hover:text-gold transition-colors duration-300">
+              <Link to="/investment" className="border border-onyx/30 px-7 py-4 text-[10px] font-bold uppercase tracking-widest hover:border-gold hover:text-gold transition-colors duration-300">
                 {t("home.heroCtaConsultation")}
               </Link>
             </div>

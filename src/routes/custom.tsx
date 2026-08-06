@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Shell } from "@/components/site/Chrome";
 import { createCustomOrder } from "@/lib/requests";
 import { useLiveGold } from "@/lib/live-gold";
+import { useI18n } from "@/lib/i18n/context";
 import {
   Camera,
   Check,
@@ -12,8 +13,6 @@ import {
   Upload,
   X,
 } from "lucide-react";
-// اگر useSession دارید:
-// import { useSession } from "@/lib/use-session";
 
 export const Route = createFileRoute("/custom")({
   head: () => ({
@@ -40,60 +39,21 @@ type ServiceId =
   | "custom-pendant"
   | "other";
 
-const SERVICES: {
-  id: ServiceId;
-  title: string;
-  desc: string;
-  examples: string[];
-}[] = [
-  {
-    id: "name-plaque",
-    title: "پلاک اسم",
-    desc: "پلاک طلا با نام یا متن دلخواه به فارسی یا انگلیسی.",
-    examples: ["اسم کوچک", "تاریخ تولد", "عبارت کوتاه"],
-  },
-  {
-    id: "engraving",
-    title: "حکاکی روی طلا",
-    desc: "حکاکی روی انگشتر، دستبند یا پلاک موجود.",
-    examples: ["متن پشت انگشتر", "مختصات", "تاریخ ازدواج"],
-  },
-  {
-    id: "photo-replica",
-    title: "ساخت از روی عکس",
-    desc: "طرح یا قطعهٔ مشابه عکس ارسالی شما ساخته می‌شود.",
-    examples: ["کپی طرح اینستاگرام", "یادبود خانوادگی", "مدل خاص"],
-  },
-  {
-    id: "custom-ring",
-    title: "انگشتر سفارشی",
-    desc: "سایز، عیار، نگین و طرح مطابق سلیقه شما.",
-    examples: ["نامزدی", "ست زوج", "طرح مینیمال"],
-  },
-  {
-    id: "custom-pendant",
-    title: "آویز / گردنبند سفارشی",
-    desc: "پلاک، حرف اول، نماد مذهبی یا طرح آزاد.",
-    examples: ["حرف اول", "نقشه ایران", "نماد شخصی"],
-  },
-  {
-    id: "other",
-    title: "سایر سفارش‌ها",
-    desc: "هر ایدهٔ دیگری که در دسته‌های بالا نیست.",
-    examples: ["ست کامل", "تعویض نگین", "تعمیر خاص"],
-  },
+const SERVICE_IDS: ServiceId[] = [
+  "name-plaque",
+  "engraving",
+  "photo-replica",
+  "custom-ring",
+  "custom-pendant",
+  "other",
 ];
 
-const KARATS = [
-  { id: "18", label: "۱۸ عیار", note: "رایج برای جواهر" },
-  { id: "21", label: "۲۱ عیار", note: "زرد کلاسیک" },
-  { id: "24", label: "۲۴ عیار", note: "خالص‌تر، نرم‌تر" },
-];
+const KARATS = ["18", "21", "24"] as const;
 
 const WEIGHT_PRESETS = [1, 2, 3, 5, 8, 10];
 
 function CustomOrderPage() {
-  // const { session } = useSession();
+  const { t } = useI18n();
   const session = null as { id: string } | null;
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -112,10 +72,13 @@ function CustomOrderPage() {
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
-  const selectedService = SERVICES.find((s) => s.id === service)!;
+  const serviceTitle = (id: ServiceId) => t(`custom.service.${id}.title`);
+  const serviceDesc = (id: ServiceId) => t(`custom.service.${id}.desc`);
+  const serviceExamples = (id: ServiceId) => t(`custom.service.${id}.examples`);
+
   const { rates, isLive } = useLiveGold();
 
-  /** برآورد بر اساس قیمت لحظه‌ای طلا + اجرت تقریبی ۱۵٪ + ۹٪ مالیات */
+  /** Estimate based on live gold rate + ~15% making charge + 9% VAT */
   const estimate = useMemo(() => {
     const karatKey = (karat === "24" ? "24K" : karat === "21" ? "21K" : "18K") as keyof typeof rates;
     const gold = weight * rates[karatKey];
@@ -125,10 +88,10 @@ function CustomOrderPage() {
   }, [karat, weight, rates]);
 
   const estimateNote = useMemo(() => {
-    if (service === "name-plaque") return "قیمت نهایی پس از تأیید طرح و وزن اعلام می‌شود.";
-    if (service === "photo-replica") return "بعد از بررسی عکس، امکان‌پذیری و حدود قیمت پیامک می‌شود.";
-    return "کارشناس ظرف چند ساعت با شما هماهنگ می‌کند.";
-  }, [service]);
+    if (service === "name-plaque") return t("custom.estimateNotePlaque");
+    if (service === "photo-replica") return t("custom.estimateNotePhoto");
+    return t("custom.estimateNoteDefault");
+  }, [service, t]);
 
   const onFiles = (files: FileList | null) => {
     if (!files?.length) return;
@@ -136,15 +99,15 @@ function CustomOrderPage() {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (!file.type.startsWith("image/")) {
-        toast.error("فقط تصویر مجاز است");
+        toast.error(t("custom.toastImageOnly"));
         continue;
       }
       if (file.size > 8 * 1024 * 1024) {
-        toast.error("حجم هر عکس حداکثر ۸ مگابایت");
+        toast.error(t("custom.toastMaxSize"));
         continue;
       }
       if (photos.length + next.length >= 5) {
-        toast.error("حداکثر ۵ عکس");
+        toast.error(t("custom.toastMaxPhotos"));
         break;
       }
       next.push({
@@ -167,23 +130,23 @@ function CustomOrderPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !phone.trim()) {
-      toast.error("نام و شماره تماس الزامی است");
+      toast.error(t("custom.toastNamePhoneRequired"));
       setStep(3);
       return;
     }
     if (service === "name-plaque" && !textOnItem.trim()) {
-      toast.error("متن روی پلاک را وارد کنید");
+      toast.error(t("custom.toastTextRequired"));
       setStep(2);
       return;
     }
     if (service === "photo-replica" && photos.length === 0) {
-      toast.error("حداقل یک عکس مرجع بفرستید");
+      toast.error(t("custom.toastPhotoRequired"));
       setStep(2);
       return;
     }
 
     if (!session) {
-      // اختیاری: اجبار ورود
+      // Optional: force sign-in
       // navigate({ to: "/auth", search: { redirect: "/custom" } });
     }
 
@@ -201,13 +164,13 @@ function CustomOrderPage() {
         city: city.trim(),
         photos: photos.length,
       });
-      toast.success(`درخواست ${order.id} ثبت شد. به‌زودی با شما تماس می‌گیریم.`);
+      toast.success(t("custom.toastOrderSuccess", { id: order.id }));
       setStep(1);
       setTextOnItem("");
       setDescription("");
       setPhotos([]);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "ثبت ناموفق بود");
+      toast.error(err instanceof Error ? err.message : t("custom.toastOrderFailed"));
     } finally {
       setBusy(false);
     }
@@ -216,34 +179,33 @@ function CustomOrderPage() {
   return (
     <Shell>
       {/* Hero */}
-      <section dir="rtl" className="border-b border-onyx/10 bg-gradient-to-b from-white/80 to-transparent">
+      <section className="border-b border-onyx/10 bg-gradient-to-b from-white/80 to-transparent">
         <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
           <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.28em] text-gold">
-            <Sparkles size={14} /> سفارش سفارشی
+            <Sparkles size={14} /> {t("custom.heroEyebrow")}
           </span>
           <h1 className="mt-4 font-serif text-4xl leading-tight sm:text-5xl">
-            طلایی که فقط مال شماست.
+            {t("custom.heroTitle")}
           </h1>
           <p className="mt-4 max-w-2xl font-light text-onyx/65">
-            پلاک اسم، حکاکی، ساخت از روی عکس یا هر طرح دیگری که در ذهن دارید. عکس مرجع بفرستید؛
-            ما امکان‌پذیری و قیمت را اعلام می‌کنیم و بعد از تأیید، می‌سازیم.
+            {t("custom.heroBody")}
           </p>
           <div className="mt-8 flex flex-wrap gap-3 text-[12px] text-onyx/55">
-            <span className="rounded-full border border-onyx/15 px-4 py-1.5">بدون اجرت ثابت پنهان</span>
-            <span className="rounded-full border border-onyx/15 px-4 py-1.5">تأیید طرح قبل از ساخت</span>
-            <span className="rounded-full border border-onyx/15 px-4 py-1.5">ارسال عکس از واتساپ/سایت</span>
+            <span className="rounded-full border border-onyx/15 px-4 py-1.5">{t("custom.badgeNoHiddenFee")}</span>
+            <span className="rounded-full border border-onyx/15 px-4 py-1.5">{t("custom.badgeApproveBeforeMake")}</span>
+            <span className="rounded-full border border-onyx/15 px-4 py-1.5">{t("custom.badgeSendPhoto")}</span>
           </div>
         </div>
       </section>
 
-      <section dir="rtl" className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
+      <section className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
         {/* Steps */}
         <div className="mb-10 flex flex-wrap gap-2">
           {(
             [
-              [1, "نوع سفارش"],
-              [2, "جزئیات و عکس"],
-              [3, "اطلاعات تماس"],
+              [1, t("custom.stepOrderType")],
+              [2, t("custom.stepDetailsPhoto")],
+              [3, t("custom.stepContactInfo")],
             ] as const
           ).map(([n, label]) => (
             <button
@@ -266,53 +228,53 @@ function CustomOrderPage() {
 
         <form onSubmit={submit} className="grid gap-10 lg:grid-cols-[1fr_340px]">
           <div className="space-y-8">
-            {/* ——— مرحله ۱: نوع سرویس ——— */}
+            {/* ——— Step 1: service type ——— */}
             {step === 1 && (
               <div>
-                <h2 className="font-serif text-2xl">چه چیزی می‌خواهید؟</h2>
-                <p className="mt-2 text-sm text-onyx/55">یک مورد را انتخاب کنید؛ بعد جزئیات را می‌پرسیم.</p>
+                <h2 className="font-serif text-2xl">{t("custom.step1Title")}</h2>
+                <p className="mt-2 text-sm text-onyx/55">{t("custom.step1Subtitle")}</p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  {SERVICES.map((s) => {
-                    const active = service === s.id;
+                  {SERVICE_IDS.map((s) => {
+                    const active = service === s;
                     return (
                       <button
-                        key={s.id}
+                        key={s}
                         type="button"
-                        onClick={() => setService(s.id)}
+                        onClick={() => setService(s)}
                         className={`rounded-2xl border p-5 text-right transition-all ${
                           active
                             ? "border-gold bg-white shadow-[0_16px_40px_rgba(15,15,15,0.06)]"
                             : "border-onyx/10 bg-white/60 hover:border-gold/40"
                         }`}
                       >
-                        <p className="font-serif text-lg">{s.title}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-onyx/55">{s.desc}</p>
-                        <p className="mt-3 text-[11px] text-onyx/40">{s.examples.join(" · ")}</p>
+                        <p className="font-serif text-lg">{serviceTitle(s)}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-onyx/55">{serviceDesc(s)}</p>
+                        <p className="mt-3 text-[11px] text-onyx/40">{serviceExamples(s)}</p>
                       </button>
                     );
                   })}
                 </div>
 
                 <div className="mt-8 rounded-2xl border border-onyx/10 bg-white/70 p-6">
-                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-onyx/50">عیار</h3>
+                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-onyx/50">{t("custom.karatLabel")}</h3>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {KARATS.map((k) => (
                       <button
-                        key={k.id}
+                        key={k}
                         type="button"
-                        onClick={() => setKarat(k.id)}
+                        onClick={() => setKarat(k)}
                         className={`rounded-full border px-4 py-2 text-sm ${
-                          karat === k.id ? "border-gold bg-gold/10 text-gold" : "border-onyx/15"
+                          karat === k ? "border-gold bg-gold/10 text-gold" : "border-onyx/15"
                         }`}
                       >
-                        {k.label}
-                        <span className="ms-2 text-[10px] text-onyx/45">{k.note}</span>
+                        {t(`custom.karat${k}Label`)}
+                        <span className="ms-2 text-[10px] text-onyx/45">{t(`custom.karat${k}Note`)}</span>
                       </button>
                     ))}
                   </div>
 
                   <h3 className="mt-6 text-[11px] font-bold uppercase tracking-widest text-onyx/50">
-                    وزن تقریبی (گرم)
+                    {t("custom.weightLabel")}
                   </h3>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {WEIGHT_PRESETS.map((w) => (
@@ -329,7 +291,7 @@ function CustomOrderPage() {
                             : "border-onyx/15"
                         }`}
                       >
-                        {w} گرم
+                        {t("custom.gramValue", { weight: w })}
                       </button>
                     ))}
                     <button
@@ -339,7 +301,7 @@ function CustomOrderPage() {
                         customWeight ? "border-gold bg-gold/10 text-gold" : "border-onyx/15"
                       }`}
                     >
-                      وزن دلخواه
+                      {t("custom.customWeightLabel")}
                     </button>
                   </div>
                   {customWeight && (
@@ -350,7 +312,7 @@ function CustomOrderPage() {
                       value={weight}
                       onChange={(e) => setWeight(Number(e.target.value) || 0)}
                       className="mt-4 w-full max-w-xs border-b border-onyx/20 bg-transparent py-2 text-lg outline-none focus:border-gold"
-                      placeholder="مثلاً ۴٫۵"
+                      placeholder={t("custom.weightPlaceholder")}
                     />
                   )}
                 </div>
@@ -360,43 +322,43 @@ function CustomOrderPage() {
                   onClick={() => setStep(2)}
                   className="mt-8 bg-onyx px-8 py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-parchment transition-all hover:bg-gold hover:text-onyx"
                 >
-                  ادامه — جزئیات و عکس
+                  {t("custom.continueDetails")}
                 </button>
               </div>
             )}
 
-            {/* ——— مرحله ۲: متن + توضیح + عکس ——— */}
+            {/* ——— Step 2: text + description + photos ——— */}
             {step === 2 && (
               <div className="space-y-8">
                 <div>
-                  <h2 className="font-serif text-2xl">{selectedService.title}</h2>
-                  <p className="mt-1 text-sm text-onyx/55">{selectedService.desc}</p>
+                  <h2 className="font-serif text-2xl">{serviceTitle(service)}</h2>
+                  <p className="mt-1 text-sm text-onyx/55">{serviceDesc(service)}</p>
                 </div>
 
                 {(service === "name-plaque" || service === "engraving" || service === "custom-pendant") && (
                   <div className="rounded-2xl border border-onyx/10 bg-white/70 p-6">
                     <label className="block">
                       <span className="text-[10px] uppercase tracking-widest text-onyx/60">
-                        متن روی کار (اسم، تاریخ، عبارت)
+                        {t("custom.textOnItemLabel")}
                       </span>
                       <input
                         value={textOnItem}
                         onChange={(e) => setTextOnItem(e.target.value)}
-                        placeholder="مثلاً: سارا  ·  ۱۴۰۳/۰۱/۰۱"
+                        placeholder={t("custom.textOnItemPlaceholder")}
                         className="mt-2 w-full border-b border-onyx/20 bg-transparent py-3 text-xl outline-none focus:border-gold"
                         maxLength={40}
                       />
                     </label>
-                    <p className="mt-2 text-[11px] text-onyx/40">{textOnItem.length}/۴۰ کاراکتر</p>
+                    <p className="mt-2 text-[11px] text-onyx/40">{t("custom.charCount", { count: textOnItem.length })}</p>
 
-                    <p className="mt-6 text-[10px] uppercase tracking-widest text-onyx/60">سبک نوشتار</p>
+                    <p className="mt-6 text-[10px] uppercase tracking-widest text-onyx/60">{t("custom.fontStyleLabel")}</p>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {(
                         [
-                          ["nastaliq", "نستعلیق"],
-                          ["naskh", "نسخ"],
-                          ["latin", "لاتین"],
-                          ["mixed", "ترکیبی"],
+                          ["nastaliq", t("custom.fontNastaliq")],
+                          ["naskh", t("custom.fontNaskh")],
+                          ["latin", t("custom.fontLatin")],
+                          ["mixed", t("custom.fontMixed")],
                         ] as const
                       ).map(([id, label]) => (
                         <button
@@ -417,25 +379,25 @@ function CustomOrderPage() {
                 <div className="rounded-2xl border border-onyx/10 bg-white/70 p-6">
                   <label className="block">
                     <span className="text-[10px] uppercase tracking-widest text-onyx/60">
-                      توضیحات آزاد
+                      {t("custom.freeDescriptionLabel")}
                     </span>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={4}
-                      placeholder="سایز انگشتر، رنگ طلا (زرد/سفید/رزگلد)، جزئیات طرح، بودجه‌ی تقریبی…"
+                      placeholder={t("custom.freeDescriptionPlaceholder")}
                       className="mt-2 w-full resize-y border border-onyx/10 bg-transparent p-4 text-sm outline-none focus:border-gold"
                     />
                   </label>
                 </div>
 
-                {/* آپلود عکس */}
+                {/* Reference photos */}
                 <div className="rounded-2xl border border-onyx/10 bg-white/70 p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <h3 className="font-serif text-xl">عکس مرجع</h3>
+                      <h3 className="font-serif text-xl">{t("custom.referencePhotoTitle")}</h3>
                       <p className="mt-1 text-xs text-onyx/55">
-                        تا ۵ تصویر · JPG/PNG · حداکثر ۸ مگابایت — از روی عکس مدل، اسکرین اینستاگرام یا دست‌نویس.
+                        {t("custom.referencePhotoBody")}
                       </p>
                     </div>
                     <Camera className="shrink-0 text-gold/80" size={22} />
@@ -461,7 +423,7 @@ function CustomOrderPage() {
                           type="button"
                           onClick={() => removePhoto(p.id)}
                           className="absolute end-1.5 top-1.5 rounded-full bg-onyx/80 p-1 text-parchment opacity-0 transition group-hover:opacity-100"
-                          aria-label="حذف"
+                          aria-label={t("custom.removePhotoAria")}
                         >
                           <X size={14} />
                         </button>
@@ -475,7 +437,7 @@ function CustomOrderPage() {
                         className="flex aspect-square flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-onyx/25 bg-onyx/[0.02] text-onyx/50 transition hover:border-gold hover:text-gold"
                       >
                         <ImagePlus size={22} />
-                        <span className="text-[10px] uppercase tracking-wider">افزودن</span>
+                        <span className="text-[10px] uppercase tracking-wider">{t("custom.addPhoto")}</span>
                       </button>
                     )}
                   </div>
@@ -486,7 +448,7 @@ function CustomOrderPage() {
                     className="mt-4 inline-flex items-center gap-2 text-sm text-gold hover:underline"
                   >
                     <Upload size={16} />
-                    انتخاب از گالری
+                    {t("custom.chooseFromGallery")}
                   </button>
                 </div>
 
@@ -496,48 +458,48 @@ function CustomOrderPage() {
                     onClick={() => setStep(1)}
                     className="border border-onyx/20 px-6 py-3 text-[11px] font-bold uppercase tracking-wider"
                   >
-                    بازگشت
+                    {t("custom.back")}
                   </button>
                   <button
                     type="button"
                     onClick={() => setStep(3)}
                     className="bg-onyx px-8 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-parchment hover:bg-gold hover:text-onyx"
                   >
-                    ادامه — تماس
+                    {t("custom.continueContact")}
                   </button>
                 </div>
               </div>
             )}
 
-            {/* ——— مرحله ۳: تماس ——— */}
+            {/* ——— Step 3: contact ——— */}
             {step === 3 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="font-serif text-2xl">راه‌های تماس</h2>
+                  <h2 className="font-serif text-2xl">{t("custom.contactTitle")}</h2>
                   <p className="mt-1 text-sm text-onyx/55">
-                    بعد از ثبت، کارشناس برای تأیید طرح و اعلام قیمت با شما هماهنگ می‌کند.
+                    {t("custom.contactBody")}
                   </p>
                 </div>
 
                 <div className="rounded-2xl border border-onyx/10 bg-white/70 p-6 space-y-5">
                   <Field
-                    label="نام و نام خانوادگی"
+                    label={t("custom.fieldFullName")}
                     value={name}
                     onChange={setName}
                     required
                     autoComplete="name"
                   />
                   <Field
-                    label="شماره موبایل"
+                    label={t("custom.fieldPhone")}
                     value={phone}
                     onChange={setPhone}
                     required
                     type="tel"
                     inputMode="tel"
-                    placeholder="۰۹۱۲…"
+                    placeholder={t("custom.fieldPhonePlaceholder")}
                     autoComplete="tel"
                   />
-                  <Field label="شهر" value={city} onChange={setCity} placeholder="مثلاً مشهد" />
+                  <Field label={t("custom.fieldCity")} value={city} onChange={setCity} placeholder={t("custom.fieldCityPlaceholder")} />
                 </div>
 
                 <div className="flex flex-wrap gap-3">
@@ -546,42 +508,42 @@ function CustomOrderPage() {
                     onClick={() => setStep(2)}
                     className="border border-onyx/20 px-6 py-3 text-[11px] font-bold uppercase tracking-wider"
                   >
-                    بازگشت
+                    {t("custom.back")}
                   </button>
                   <button
                     type="submit"
                     disabled={busy}
                     className="bg-onyx px-8 py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-parchment transition-all hover:bg-gold hover:text-onyx disabled:opacity-50"
                   >
-                    {busy ? "در حال ثبت…" : "ثبت درخواست سفارش"}
+                    {busy ? t("custom.submitBusy") : t("custom.submit")}
                   </button>
                 </div>
               </div>
             )}
           </div>
 
-          {/* خلاصه ثابت */}
+          {/* Fixed summary */}
           <aside className="h-fit space-y-4 rounded-2xl bg-secondary p-7 lg:sticky lg:top-28">
-            <h4 className="text-[11px] font-bold uppercase tracking-widest">خلاصه درخواست</h4>
-            <Row label="نوع" value={selectedService.title} />
-            <Row label="عیار" value={`${karat} عیار`} />
-            <Row label="وزن تقریبی" value={`${weight} گرم`} />
-            {textOnItem && <Row label="متن" value={textOnItem} />}
-            <Row label="عکس‌ها" value={`${photos.length} فایل`} />
+            <h4 className="text-[11px] font-bold uppercase tracking-widest">{t("custom.requestSummary")}</h4>
+            <Row label={t("custom.rowType")} value={serviceTitle(service)} />
+            <Row label={t("custom.rowKarat")} value={t("custom.karatValue", { karat })} />
+            <Row label={t("custom.rowWeight")} value={t("custom.gramValue", { weight })} />
+            {textOnItem && <Row label={t("custom.rowText")} value={textOnItem} />}
+            <Row label={t("custom.rowPhotos")} value={t("custom.photoCount", { count: photos.length })} />
             <div className="border-t border-onyx/10 pt-4">
               <p className="text-[10px] uppercase tracking-widest text-onyx/45">
-                برآورد با نرخ {isLive ? "لحظه‌ای" : "پیش‌فرض"} طلا
+                {isLive ? t("custom.estimateWithLiveRate") : t("custom.estimateWithDefaultRate")}
               </p>
-              <Row label="ارزش طلا" value={`${fmt(estimate.gold)} تومان`} />
-              <Row label="اجرت تقریبی (۱۵٪)" value={`${fmt(estimate.making)} تومان`} />
-              <Row label="مالیات (۹٪)" value={`${fmt(estimate.vat)} تومان`} />
-              <Row label="جمع تقریبی" value={`${fmt(estimate.total)} تومان`} />
+              <Row label={t("custom.rowGoldValue")} value={`${fmt(estimate.gold)} ${t("custom.tomanUnit")}`} />
+              <Row label={t("custom.rowMakingFee")} value={`${fmt(estimate.making)} ${t("custom.tomanUnit")}`} />
+              <Row label={t("custom.rowVat")} value={`${fmt(estimate.vat)} ${t("custom.tomanUnit")}`} />
+              <Row label={t("custom.rowApproxTotal")} value={`${fmt(estimate.total)} ${t("custom.tomanUnit")}`} />
             </div>
             <p className="border-t border-onyx/10 pt-4 text-[11px] leading-relaxed text-onyx/50">
               {estimateNote}
             </p>
             <p className="text-[11px] text-onyx/45">
-              یا مستقیم در تلگرام بفرستید:{" "}
+              {t("custom.telegramPrefix")}{" "}
               <a
                 href="https://t.me/aghligold"
                 target="_blank"
@@ -596,24 +558,19 @@ function CustomOrderPage() {
               search={{ stock: "made-to-order" } as never}
               className="block pt-2 text-center text-[10px] uppercase tracking-widest text-gold"
             >
-              مشاهده محصولات آماده سفارش
+              {t("custom.viewMadeToOrder")}
             </Link>
           </aside>
         </form>
 
-        {/* نمونه‌کار / اعتماد */}
+        {/* How it works */}
         <div className="mt-20 border-t border-onyx/10 pt-14">
-          <h2 className="font-serif text-2xl">چطور کار می‌کند؟</h2>
+          <h2 className="font-serif text-2xl">{t("custom.howItWorksTitle")}</h2>
           <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              ["۱", "نوع کار و جزئیات را مشخص کنید"],
-              ["۲", "عکس یا متن مرجع بفرستید"],
-              ["۳", "قیمت و زمان ساخت را تأیید کنید"],
-              ["۴", "پس از ساخت، ارسال یا تحویل حضوری"],
-            ].map(([n, t]) => (
+            {(["1", "2", "3", "4"] as const).map((n) => (
               <li key={n} className="rounded-2xl border border-onyx/10 bg-white/50 p-5">
                 <span className="text-gold font-serif text-2xl">{n}</span>
-                <p className="mt-2 text-sm text-onyx/70">{t}</p>
+                <p className="mt-2 text-sm text-onyx/70">{t(`custom.howItWorksStep${n}`)}</p>
               </li>
             ))}
           </ol>

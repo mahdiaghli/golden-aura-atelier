@@ -231,10 +231,9 @@
       { slug: "rings", label: "Rings" },
       { slug: "necklaces", label: "Necklaces" },
       { slug: "bracelets", label: "Bracelets" },
-      { slug: "bangles", label: "Bangles" },
       { slug: "earrings", label: "Earrings" },
       { slug: "sets", label: "Sets" },
-      { slug: "investment", label: "Investment" },
+      { slug: "bullion", label: "Investment" },
     ] as const
   ).map((c) => (
     <RadioRow
