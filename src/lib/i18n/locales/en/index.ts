@@ -137,7 +137,7 @@ export const en: Messages = {
     heroTitle: "Gold made to become part of your story.",
     heroSubtitle: "Discover new pieces, investment gold, and personal heirlooms with clear, live-informed pricing.",
     heroCtaShop: "Shop collection",
-    heroCtaConsultation: "Book consultation",
+    heroCtaConsultation: "Gold investment",
     bestseller: "Best seller",
     shopAll: "Shop all",
     newestEyebrow: "Just arrived",
