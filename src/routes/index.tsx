@@ -86,12 +86,12 @@ function Home() {
     <Shell>
       <section className="relative min-h-[660px] overflow-hidden">
         <img src="/products/hero-ring.jpg" alt={t("home.heroImageAlt")} className="absolute inset-0 h-full w-full object-cover" />
-<div className="absolute inset-0 bg-gradient-to-l from-parchment/40 via-parchment/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-l from-parchment/40 via-parchment/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-parchment via-parchment/10 to-transparent" />
         <div className="relative mx-auto flex min-h-[660px] max-w-7xl items-center px-6">
-          <div className="max-w-2xl">
+          <div className="max-w-2xl animate-fade-up">
             <p className="text-[11px] uppercase tracking-[.38em] text-gold">{t("home.heroEyebrow")}</p>
-            {/* کاهش سایز هدر اصلی (طلایی که بخشی از داستان شما می‌شود) به text-3xl و در دسکتاپ md:text-5xl */}
-            <h1 className="mt-5 text-3xl md:text-5xl font-semibold leading-[1.2] tracking-tight">{t("home.heroTitle")}</h1>
+            <h1 className="mt-5 text-3xl md:text-5xl font-semibold leading-[1.35] tracking-tight">{t("home.heroTitle")}</h1>
             <p className="mt-7 max-w-lg text-base leading-relaxed text-onyx/70">{t("home.heroSubtitle")}</p>
             <div className="mt-9 flex flex-wrap gap-4">
               <Link to="/shop" className="bg-onyx px-7 py-4 text-[10px] font-bold uppercase tracking-widest text-parchment hover:bg-gold hover:text-onyx transition-colors duration-300">
