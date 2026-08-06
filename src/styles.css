@@ -46,8 +46,8 @@
   --color-gold-soft: var(--gold-soft);
   --color-onyx: var(--onyx);
   --color-parchment: var(--parchment);
-  --font-serif: 'Playfair Display', serif;
-  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Playfair Display', 'Vazirmatn', serif;
+  --font-sans: 'Vazirmatn', 'Inter', sans-serif;
 }
 
 :root {
