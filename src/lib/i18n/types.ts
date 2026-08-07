@@ -45,4 +45,7 @@ export type Messages = {
   products: Record<string, ProductTranslation>;
   blogPosts: Record<string, BlogTranslation>;
   signup?: Record<string, unknown>;
+  investment: Record<string, unknown>;
+  custom: Record<string, unknown>;
+  tryOn: Record<string, unknown>;
 };

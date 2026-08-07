@@ -1,22 +1,23 @@
+import { useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Shell } from "@/components/site/Chrome";
 import { useI18n } from "@/lib/i18n/context";
 import { formatTomanLocalized } from "@/lib/i18n/helpers";
+import { useLiveGold } from "@/lib/live-gold";
+import type { MarketItem, MarketSnapshot } from "@/lib/market-prices";
+import { getHistory, type PriceHistorySymbol } from "@/lib/price-history";
 
-type MarketRow = {
-  key: "gold18k" | "gold24k" | "silver" | "emami" | "half" | "quarter" | "usd";
-  current: number;
-  history: number[];
-};
+type MarketKey = "gold18k" | "gold24k" | "silver" | "usd" | "emami" | "half" | "quarter";
 
-const markets: MarketRow[] = [
-  { key: "gold18k", current: 3_452_000, history: [3_415_000, 3_438_000, 3_452_000, 3_426_000, 3_452_000] },
-  { key: "gold24k", current: 4_602_000, history: [4_550_000, 4_578_000, 4_602_000, 4_566_000, 4_602_000] },
-  { key: "silver", current: 74_000, history: [71_500, 72_300, 73_100, 72_700, 74_000] },
-  { key: "emami", current: 41_200_000, history: [40_400_000, 40_850_000, 41_000_000, 40_700_000, 41_200_000] },
-  { key: "half", current: 22_100_000, history: [21_700_000, 21_850_000, 22_000_000, 21_800_000, 22_100_000] },
-  { key: "quarter", current: 13_100_000, history: [12_850_000, 12_920_000, 13_000_000, 12_900_000, 13_100_000] },
-  { key: "usd", current: 93_500, history: [91_800, 92_200, 92_900, 92_400, 93_500] },
+const MARKET_CONFIG: { key: MarketKey; snapshotKey: keyof MarketSnapshot; historySymbol: PriceHistorySymbol }[] = [
+  { key: "gold18k", snapshotKey: "gold18k", historySymbol: "gold18k" },
+  { key: "gold24k", snapshotKey: "gold24k", historySymbol: "gold24k" },
+  { key: "silver", snapshotKey: "silver", historySymbol: "silver" },
+  { key: "usd", snapshotKey: "dollar", historySymbol: "dollar" },
+  { key: "emami", snapshotKey: "emamiCoin", historySymbol: "emamiCoin" },
+  { key: "half", snapshotKey: "halfCoin", historySymbol: "halfCoin" },
+  { key: "quarter", snapshotKey: "quarterCoin", historySymbol: "quarterCoin" },
 ];
 
 export const Route = createFileRoute("/prices")({
@@ -24,9 +25,121 @@ export const Route = createFileRoute("/prices")({
   head: () => ({ meta: [{ title: "Market Prices | Aghli Gold" }] }),
 });
 
+function formatTime(value: string | null | undefined, locale: string) {
+  if (!value) return "--";
+  const asDate = new Date(value);
+  if (Number.isNaN(asDate.getTime())) return value;
+  return new Intl.DateTimeFormat(locale === "fa" ? "fa-IR" : "en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(asDate);
+}
+
+function ChangeBadge({ value, locale }: { value?: number; locale: string }) {
+  if (value === undefined || Number.isNaN(value)) {
+    return <span className="text-xs text-onyx/40">--</span>;
+  }
+  const positive = value >= 0;
+  const formatted = new Intl.NumberFormat(locale === "fa" ? "fa-IR" : "en-US", {
+    maximumFractionDigits: 2,
+    signDisplay: "always",
+  }).format(value);
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+        positive ? "bg-emerald-600/10 text-emerald-700" : "bg-red-600/10 text-red-700"
+      }`}
+    >
+      {formatted}٪
+    </span>
+  );
+}
+
+function MarketCard({
+  marketKey,
+  item,
+  historySymbol,
+  loading,
+  locale,
+}: {
+  marketKey: MarketKey;
+  item?: MarketItem;
+  historySymbol: PriceHistorySymbol;
+  loading: boolean;
+  locale: string;
+}) {
+  const { t } = useI18n();
+  const fmt = (n: number) => formatTomanLocalized(n, locale as "fa" | "en");
+
+  const series = useMemo(() => {
+    const points = getHistory(historySymbol);
+    return points.map((point) => ({
+      time: point.t,
+      price: point.price,
+      label: new Intl.DateTimeFormat(locale === "fa" ? "fa-IR" : "en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(new Date(point.t)),
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [historySymbol, item?.price, locale]);
+
+  return (
+    <article className="border border-onyx/10 bg-white/60 p-6">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="font-serif text-xl">{t(`prices.markets.${marketKey}`)}</h3>
+          <p className="mt-1 text-[11px] uppercase tracking-widest text-onyx/40">
+            {t("prices.updatedAt")}: {formatTime(item?.time ?? null, locale)}
+          </p>
+        </div>
+        <ChangeBadge value={item?.changePercent} locale={locale} />
+      </div>
+
+      <p className="mt-4 font-serif text-3xl text-gold">
+        {loading && !item ? t("prices.loading") : item ? fmt(item.price) : "--"}
+      </p>
+
+      <div className="mt-6 h-32">
+        {series.length > 1 ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={series} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
+              <defs>
+                <linearGradient id={`gradient-${marketKey}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#c8a24a" stopOpacity={0.45} />
+                  <stop offset="100%" stopColor="#c8a24a" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="label" hide />
+              <YAxis hide domain={["auto", "auto"]} />
+              <Tooltip
+                formatter={(value: number) => [fmt(value), t(`prices.markets.${marketKey}`)]}
+                labelFormatter={() => ""}
+                contentStyle={{ fontSize: 12, borderRadius: 4 }}
+              />
+              <Area
+                type="monotone"
+                dataKey="price"
+                stroke="#c8a24a"
+                strokeWidth={2}
+                fill={`url(#gradient-${marketKey})`}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex h-full items-center justify-center text-xs text-onyx/40">
+            {t("prices.chartEmpty")}
+          </div>
+        )}
+      </div>
+      <p className="mt-3 text-[11px] text-onyx/45">{t("prices.chartCaption")}</p>
+    </article>
+  );
+}
+
 function Prices() {
   const { t, locale } = useI18n();
-  const fmt = (n: number) => formatTomanLocalized(n, locale);
+  const { snapshot, loading, error, isLive, refresh } = useLiveGold();
 
   return (
     <Shell>
@@ -35,36 +148,44 @@ function Prices() {
         <h1 className="mt-4 font-serif text-5xl">{t("prices.title")}</h1>
         <p className="mt-5 max-w-2xl text-onyx/65">{t("prices.intro")}</p>
 
-        <div className="mt-12 overflow-x-auto border border-onyx/10">
-          <table className="w-full min-w-[760px] text-left">
-            <thead className="bg-onyx text-parchment text-[10px] uppercase tracking-widest">
-              <tr>
-                <th className="p-5">{t("prices.tableMarket")}</th>
-                <th className="p-5">{t("prices.tableCurrent")}</th>
-                <th className="p-5">{t("prices.tableHistory", { n: 1 })}</th>
-                <th className="p-5">{t("prices.tableHistory", { n: 2 })}</th>
-                <th className="p-5">{t("prices.tableHistory", { n: 3 })}</th>
-                <th className="p-5">{t("prices.tableHistory", { n: 4 })}</th>
-                <th className="p-5">{t("prices.tableLatest")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {markets.map((row) => (
-                <tr key={row.key} className="border-t border-onyx/10">
-                  <td className="p-5 font-serif text-lg">{t(`prices.markets.${row.key}`)}</td>
-                  <td className="p-5 font-medium text-gold">{fmt(row.current)}</td>
-                  {row.history.map((item, index) => (
-                    <td key={index} className="p-5 text-sm text-onyx/65">
-                      {fmt(item)}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <span
+            className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium ${
+              isLive ? "bg-emerald-600/10 text-emerald-700" : "bg-onyx/10 text-onyx/60"
+            }`}
+          >
+            <span className={`h-2 w-2 rounded-full ${isLive ? "bg-emerald-600" : "bg-onyx/40"}`} />
+            {isLive ? t("prices.liveOn") : t("prices.liveOff")}
+          </span>
+          <button
+            type="button"
+            onClick={() => refresh()}
+            className="text-xs font-medium uppercase tracking-widest text-onyx/60 hover:text-gold"
+          >
+            {t("prices.refresh")}
+          </button>
         </div>
 
-        <p className="mt-5 text-xs text-onyx/50">{t("prices.disclaimer")}</p>
+        {error && (
+          <div className="mt-6 border border-red-600/20 bg-red-600/5 p-4 text-sm text-red-700">
+            {t("prices.errorMessage")}
+          </div>
+        )}
+
+        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {MARKET_CONFIG.map((config) => (
+            <MarketCard
+              key={config.key}
+              marketKey={config.key}
+              item={snapshot?.[config.snapshotKey] as MarketItem | undefined}
+              historySymbol={config.historySymbol}
+              loading={loading}
+              locale={locale}
+            />
+          ))}
+        </div>
+
+        <p className="mt-8 text-xs text-onyx/50">{t("prices.disclaimer")}</p>
 
         <Link
           to="/contact"

@@ -16,6 +16,8 @@
   } from "@/lib/products";
   import { useLiveGold } from "@/lib/live-gold";
   import { useWishlist } from "@/lib/wishlist";
+  import { useI18n } from "@/lib/i18n/context";
+  import { formatTomanLocalized, tCategory, tGender } from "@/lib/i18n/helpers";
 
   const DEFAULTS: ShopSearch = SHOP_SEARCH_DEFAULT;
 
@@ -62,6 +64,8 @@
     const navigate = Route.useNavigate();
     const { has, toggle } = useWishlist();
     const { rate18, isLive } = useLiveGold();
+    const { t, locale } = useI18n();
+    const fmt = (n: number) => formatTomanLocalized(n, locale);
 
     const [visible, setVisible] = useState(24);
     const [mobileFilters, setMobileFilters] = useState(false);
@@ -93,9 +97,9 @@
         } else {
           await navigator.clipboard.writeText(url);
         }
-        toast.success("Link copied and ready to share");
+        toast.success(t("shop.card.shareSuccess"));
       } catch {
-        toast.error("Sharing was cancelled");
+        toast.error(t("shop.card.shareError"));
       }
     };
 
@@ -212,11 +216,11 @@
   <div className="space-y-8">
     {/* Search */}
     <div>
-      <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.22em] text-onyx/50">Search</h4>
+      <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.22em] text-onyx/50">{t("shop.filters.search")}</h4>
       <input
         value={search.q}
         onChange={(e) => update({ q: e.target.value })}
-        placeholder="Search pieces…"
+        placeholder={t("shop.filters.searchPlaceholder")}
         className="w-full border-b border-onyx/15 bg-transparent py-2.5 text-sm outline-none transition focus:border-gold"
       />
     </div>
@@ -224,29 +228,21 @@
     
 
 {/* Category */}
-<FilterGroup label="Category">
+<FilterGroup label={t("shop.filters.category")}>
   {(
-    [
-      { slug: "all", label: "All Collections" },
-      { slug: "rings", label: "Rings" },
-      { slug: "necklaces", label: "Necklaces" },
-      { slug: "bracelets", label: "Bracelets" },
-      { slug: "earrings", label: "Earrings" },
-      { slug: "sets", label: "Sets" },
-      { slug: "bullion", label: "Investment" },
-    ] as const
-  ).map((c) => (
+    ["all", "rings", "necklaces", "bracelets", "earrings", "sets", "bullion"] as const
+  ).map((slug) => (
     <RadioRow
-      key={c.slug}
-      label={c.label}
-      checked={search.category === c.slug}
-      onChange={() => update({ category: c.slug })}
+      key={slug}
+      label={tCategory(slug, t)}
+      checked={search.category === slug}
+      onChange={() => update({ category: slug })}
     />
   ))}
 </FilterGroup>
 
     {/* Weight */}
-    <FilterGroup label="Weight (g)">
+    <FilterGroup label={t("shop.filters.weight")}>
       <DualRangeSlider
         min={0}
         max={200}
@@ -255,12 +251,12 @@
         valueMax={search.maxWeight > 200 ? 200 : search.maxWeight}
         onChangeMin={(v) => update({ minWeight: v })}
         onChangeMax={(v) => update({ maxWeight: v >= 200 ? 1000 : v })}
-        formatValue={(v) => `${v} g`}
+        formatValue={(v) => `${v} ${locale === "fa" ? "گرم" : "g"}`}
       />
     </FilterGroup>
 
     {/* Price */}
-    <FilterGroup label="Price (Toman)">
+    <FilterGroup label={t("shop.filters.price")}>
       <DualRangeSlider
         min={DEFAULTS.min}
         max={DEFAULTS.max}
@@ -269,27 +265,27 @@
         valueMax={search.max}
         onChangeMin={(v) => update({ min: v })}
         onChangeMax={(v) => update({ max: v })}
-        formatValue={(v) => formatToman(v)}
+        formatValue={(v) => fmt(v)}
       />
     </FilterGroup>
 
 {/* Quick Filters (remaining items) */}
-<FilterGroup label="Quick Filters">
+<FilterGroup label={t("shop.filters.quickFilters")}>
   {(
     [
-      { id: "all", label: "All" },
-      { id: "on-sale", label: "On sale" },
-      { id: "most-sold", label: "Most sold" },
-      { id: "new-arrivals", label: "New arrivals" },
-      { id: "recommended", label: "Recommended" },
-      { id: "letters-names", label: "Letters & names" },
-      { id: "birth-month", label: "Birth month" },
-      { id: "lightweight", label: "Lightweight" },
+      { id: "all", key: "all" },
+      { id: "on-sale", key: "onSale" },
+      { id: "most-sold", key: "mostSold" },
+      { id: "new-arrivals", key: "newArrivals" },
+      { id: "recommended", key: "recommended" },
+      { id: "letters-names", key: "lettersNames" },
+      { id: "birth-month", key: "birthMonth" },
+      { id: "lightweight", key: "lightweight" },
     ] as const
   ).map((item) => (
     <RadioRow
       key={item.id}
-      label={item.label}
+      label={t(`shop.quickFilters.${item.key}`)}
       checked={search.tag === item.id}
       onChange={() => update({ tag: item.id as QuickTag })}
     />
@@ -297,20 +293,20 @@
 </FilterGroup>
 
 {/* Chain Style (Cartier, Figaro, ...) */}
-<FilterGroup label="Chain Style">
+<FilterGroup label={t("shop.filters.chainStyle")}>
   {(
     [
-      { id: "all", label: "All styles" },
-      { id: "cartier-model", label: "Cartier model" },
-      { id: "figaro", label: "Figaro" },
-      { id: "venetian", label: "Venetian" },
-      { id: "rope", label: "Rope" },
-      { id: "flamingo", label: "Flamingo" },
+      { id: "all", key: "all" },
+      { id: "cartier-model", key: "cartierModel" },
+      { id: "figaro", key: "figaro" },
+      { id: "venetian", key: "venetian" },
+      { id: "rope", key: "rope" },
+      { id: "flamingo", key: "flamingo" },
     ] as const
   ).map((item) => (
     <RadioRow
       key={item.id}
-      label={item.label}
+      label={t(`shop.chainStyles.${item.key}`)}
       checked={search.tag === item.id}
       onChange={() => update({ tag: item.id as QuickTag })}
     />
@@ -318,11 +314,11 @@
 </FilterGroup>
 
     {/* Wearer */}
-    <FilterGroup label="Wearer">
+    <FilterGroup label={t("shop.filters.wearer")}>
       {(["all", "women", "children"] as const).map((g) => (
         <RadioRow
           key={g}
-          label={g === "all" ? "Everyone" : g[0].toUpperCase() + g.slice(1)}
+          label={g === "all" ? t("shop.filters.everyone") : tGender(g, t)}
           checked={search.gender === g}
           onChange={() => update({ gender: g })}
         />
@@ -330,31 +326,32 @@
     </FilterGroup>
 
     {/* Gold Color */}
-    <FilterGroup label="Gold Color">
-      {(["all", "yellow", "white", "rose", "two-tone", "three-tone"] as const).map((c) => (
+    <FilterGroup label={t("shop.filters.goldColor")}>
+      {(
+        [
+          { id: "all", key: "all" },
+          { id: "yellow", key: "yellow" },
+          { id: "white", key: "white" },
+          { id: "rose", key: "rose" },
+          { id: "two-tone", key: "twoTone" },
+          { id: "three-tone", key: "threeTone" },
+        ] as const
+      ).map((c) => (
         <RadioRow
-          key={c}
-          label={
-            c === "all"
-              ? "All colors"
-              : c
-                  .replace(/-/g, " ")
-                  .split(" ")
-                  .map((w) => w[0].toUpperCase() + w.slice(1))
-                  .join(" ")
-          }
-          checked={search.color === c}
-          onChange={() => update({ color: c })}
+          key={c.id}
+          label={c.id === "all" ? t("shop.filters.allColors") : t(`shop.colors.${c.key}`)}
+          checked={search.color === c.id}
+          onChange={() => update({ color: c.id })}
         />
       ))}
     </FilterGroup>
 
     {/* Style */}
-    <FilterGroup label="Style">
+    <FilterGroup label={t("shop.filters.style")}>
       {(["all", "classic", "minimal", "modern", "luxury", "vintage", "sporty"] as const).map((s) => (
         <RadioRow
           key={s}
-          label={s === "all" ? "All styles" : s[0].toUpperCase() + s.slice(1)}
+          label={s === "all" ? t("shop.filters.allStyles") : t(`shop.styles.${s}`)}
           checked={search.style === s}
           onChange={() => update({ style: s })}
         />
@@ -362,11 +359,11 @@
     </FilterGroup>
 
     {/* Occasion */}
-    <FilterGroup label="Occasion">
+    <FilterGroup label={t("shop.filters.occasion")}>
       {(["all", "everyday", "engagement", "wedding", "gift", "investment"] as const).map((o) => (
         <RadioRow
           key={o}
-          label={o === "all" ? "All occasions" : o[0].toUpperCase() + o.slice(1)}
+          label={o === "all" ? t("shop.filters.allOccasions") : t(`shop.occasions.${o}`)}
           checked={search.occasion === o}
           onChange={() => update({ occasion: o })}
         />
@@ -374,16 +371,16 @@
     </FilterGroup>
 
     {/* Availability */}
-    <FilterGroup label="Availability">
+    <FilterGroup label={t("shop.filters.availability")}>
       {(["all", "in-stock", "made-to-order"] as const).map((status) => (
         <RadioRow
           key={status}
           label={
             status === "all"
-              ? "All availability"
+              ? t("shop.filters.allAvailability")
               : status === "in-stock"
-                ? "In stock"
-                : "Made-to-order"
+                ? t("shop.filters.inStock")
+                : t("shop.filters.madeToOrder")
           }
           checked={search.stock === status}
           onChange={() => update({ stock: status })}
@@ -396,7 +393,7 @@
       onClick={() => navigate({ search: DEFAULTS })}
       className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold underline-offset-4 hover:underline"
     >
-      Reset all filters
+      {t("shop.filters.resetAll")}
     </button>
   </div>
 );
@@ -484,7 +481,7 @@
               className="inline-flex items-center gap-2 rounded-full border border-onyx/15 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider"
             >
               <SlidersHorizontal size={14} />
-              Filters
+              {t("shop.mobile.filtersButton")}
               {activeFilterCount > 0 && (
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gold text-[10px] font-bold text-onyx">
                   {activeFilterCount}
@@ -492,7 +489,7 @@
               )}
             </button>
             <p className="text-[11px] uppercase tracking-widest text-onyx/45">
-              {filtered.length} pieces
+              {filtered.length} {t(filtered.length === 1 ? "shop.results.piece" : "shop.results.pieces")}
             </p>
           </div>
         </div>
@@ -503,13 +500,13 @@
             <button
               type="button"
               className="absolute inset-0 bg-onyx/40"
-              aria-label="Close filters"
+              aria-label={t("shop.filters.closeFilters")}
               onClick={() => setMobileFilters(false)}
             />
             <div className="absolute inset-y-0 left-0 flex w-[min(100%,320px)] flex-col bg-parchment shadow-2xl">
               <div className="flex items-center justify-between border-b border-onyx/10 px-5 py-4">
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em]">Filters</p>
-                <button type="button" onClick={() => setMobileFilters(false)} aria-label="Close">
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em]">{t("shop.filters.filtersLabel")}</p>
+                <button type="button" onClick={() => setMobileFilters(false)} aria-label={t("shop.filters.closeFilters")}>
                   <X size={20} />
                 </button>
               </div>
@@ -520,7 +517,7 @@
                   onClick={() => setMobileFilters(false)}
                   className="w-full rounded-xl bg-onyx py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-parchment"
                 >
-                  Show {filtered.length} pieces
+                  {t("shop.mobile.show", { count: filtered.length })}
                 </button>
               </div>
             </div>
@@ -539,7 +536,7 @@
             <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.2em] text-onyx/40">
-                  {filtered.length} {filtered.length === 1 ? "piece" : "pieces"}
+                  {filtered.length} {t(filtered.length === 1 ? "shop.results.piece" : "shop.results.pieces")}
                 </p>
                 {activeFilterCount > 0 && (
                   <button
@@ -547,35 +544,35 @@
                     onClick={() => navigate({ search: DEFAULTS })}
                     className="mt-1 text-[11px] text-gold hover:underline"
                   >
-                    Clear {activeFilterCount} active filter{activeFilterCount > 1 ? "s" : ""}
+                    {t("shop.results.clearFilters", { count: activeFilterCount })}
                   </button>
                 )}
               </div>
               <label className="flex items-center gap-3 text-[11px] uppercase tracking-[0.16em] text-onyx/50">
-                Sort
+                {t("shop.sort.label")}
                 <select
                   value={search.sort}
                   onChange={(e) => update({ sort: e.target.value as ShopSearch["sort"] })}
                   className="border-b border-onyx/20 bg-transparent py-1 text-xs text-onyx outline-none focus:border-gold"
                 >
-                  <option value="featured">Featured</option>
-                  <option value="price-asc">Price · Low to high</option>
-                  <option value="price-desc">Price · High to low</option>
-                  <option value="weight-desc">Heaviest first</option>
+                  <option value="featured">{t("shop.sort.featured")}</option>
+                  <option value="price-asc">{t("shop.sort.priceAsc")}</option>
+                  <option value="price-desc">{t("shop.sort.priceDesc")}</option>
+                  <option value="weight-desc">{t("shop.sort.weightDesc")}</option>
                 </select>
               </label>
             </div>
 
             {filtered.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-onyx/15 bg-white/40 px-6 py-24 text-center">
-                <p className="font-serif text-2xl md:text-3xl">No pieces match</p>
-                <p className="mt-2 text-sm text-onyx/50">Try widening filters or clearing search.</p>
+                <p className="font-serif text-2xl md:text-3xl">{t("shop.emptyTitle")}</p>
+                <p className="mt-2 text-sm text-onyx/50">{t("shop.emptyBody")}</p>
                 <button
                   type="button"
                   onClick={() => navigate({ search: DEFAULTS })}
                   className="mt-6 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold underline-offset-4 hover:underline"
                 >
-                  Reset filters
+                  {t("shop.filters.reset")}
                 </button>
               </div>
             ) : (
@@ -601,10 +598,10 @@
                         {/* Badges */}
                         <div className="absolute left-3 top-3 flex flex-col gap-1.5">
                           {p.bestseller && (
-                            <Badge className="bg-gold text-onyx">Bestseller</Badge>
+                            <Badge className="bg-gold text-onyx">{t("shop.badges.bestseller")}</Badge>
                           )}
-                          {p.newest && <Badge className="bg-emerald-700 text-white">New</Badge>}
-                          {p.mostSold && <Badge className="bg-onyx text-parchment">Most sold</Badge>}
+                          {p.newest && <Badge className="bg-emerald-700 text-white">{t("shop.badges.new")}</Badge>}
+                          {p.mostSold && <Badge className="bg-onyx text-parchment">{t("shop.badges.mostSold")}</Badge>}
                           {p.onSale && p.discount && (
                             <Badge className="bg-red-600 text-white">−{p.discount}%</Badge>
                           )}
@@ -613,13 +610,13 @@
                         {/* Actions */}
                         <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
                           <IconBtn
-                            label={liked ? "Remove from wishlist" : "Add to wishlist"}
+                            label={liked ? t("shop.card.wishlistRemove") : t("shop.card.wishlistAdd")}
                             active={liked}
                             onClick={() => toggle(p.id)}
                           >
                             <Heart size={15} fill={liked ? "currentColor" : "none"} strokeWidth={1.6} />
                           </IconBtn>
-                          <IconBtn label={`Share ${p.name}`} onClick={() => shareProduct(p)}>
+                          <IconBtn label={t("shop.card.share", { name: p.name })} onClick={() => shareProduct(p)}>
                             <Share2 size={15} strokeWidth={1.6} />
                           </IconBtn>
                         </div>
@@ -627,7 +624,7 @@
                         {/* Hover strip */}
                         <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-onyx/50 to-transparent p-4 pt-10 transition duration-300 group-hover:translate-y-0">
                           <p className="text-[10px] uppercase tracking-wider text-parchment/90">
-                            View details
+                            {t("shop.card.viewDetails")}
                           </p>
                         </div>
                       </div>
@@ -658,15 +655,15 @@
                         </div>
 
                         <p className="mt-3 text-[15px] font-medium tracking-tight">
-                          {formatToman(total)}
+                          {fmt(total)}
                         </p>
 
                         <div className="mt-auto flex flex-wrap gap-1.5 pt-3">
-                          {p.freeShipping && <Chip>Free shipping</Chip>}
-                          {p.expressDelivery && <Chip>Express</Chip>}
-                          {p.customizable && <Chip>Custom</Chip>}
-                          {p.sizeAdjustable && <Chip>Adjustable</Chip>}
-                          {p.madeToOrder && <Chip>Made to order</Chip>}
+                          {p.freeShipping && <Chip>{t("shop.features.freeShipping")}</Chip>}
+                          {p.expressDelivery && <Chip>{t("shop.features.expressDelivery")}</Chip>}
+                          {p.customizable && <Chip>{t("shop.features.customizable")}</Chip>}
+                          {p.sizeAdjustable && <Chip>{t("shop.features.sizeAdjustable")}</Chip>}
+                          {p.madeToOrder && <Chip>{t("shop.features.madeToOrder")}</Chip>}
                         </div>
                       </div>
                     </article>
@@ -682,7 +679,7 @@
                   onClick={() => setVisible((v) => v + 24)}
                   className="rounded-full border border-onyx/15 px-10 py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] transition hover:border-gold hover:text-gold"
                 >
-                  Load more · {filtered.length - visible} left
+                  {t("shop.loadMore", { count: filtered.length - visible })}
                 </button>
               </div>
             )}
