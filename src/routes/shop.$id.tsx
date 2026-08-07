@@ -155,9 +155,9 @@ function ProductPage() {
     <Shell>
       <div className="max-w-7xl mx-auto px-6 pt-6">
         <nav className="text-[10px] uppercase tracking-widest text-onyx/50">
-          <Link to="/" className="hover:text-gold">Home</Link>
+          <Link to="/" className="hover:text-gold">{t("product.breadcrumbHome")}</Link>
           <span className="mx-2">/</span>
-          <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="hover:text-gold">Collection</Link>
+          <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="hover:text-gold">{t("product.breadcrumbCollection")}</Link>
           <span className="mx-2">/</span>
           <span className="text-onyx">{product.name}</span>
         </nav>
@@ -193,26 +193,26 @@ function ProductPage() {
         <div>
           <span className="text-[11px] uppercase tracking-[0.3em] text-gold">{product.category}</span>
           <h1 className="font-serif text-4xl md:text-5xl mt-3 leading-tight">{product.name}</h1>
-          <p className="text-[11px] uppercase tracking-widest text-onyx/40 mt-2">SKU {product.sku}</p>
+          <p className="text-[11px] uppercase tracking-widest text-onyx/40 mt-2">{t("product.skuLabel", { sku: product.sku })}</p>
 
           <div className="mt-8 flex items-baseline gap-3">
-            <span className="text-4xl font-serif">{formatToman(bd.total)}</span>
-            <span className="text-xs uppercase tracking-widest text-onyx/50">Incl. VAT</span>
+            <span className="text-4xl font-serif">{fmt(bd.total)}</span>
+            <span className="text-xs uppercase tracking-widest text-onyx/50">{t("product.vatIncluded")}</span>
           </div>
 
           <p className="text-onyx/70 mt-8 font-light leading-relaxed">{product.description}</p>
 
           <dl className="mt-10 grid grid-cols-2 gap-6 border-y border-onyx/10 py-6">
-            <Spec label="Karat" value={product.karat} />
-            <Spec label="Weight" value={`${product.weight} g`} />
-            <Spec label="Type" value={product.typeLabel || product.category} />
-            <Spec label="Gold colour" value={(product.color || "—").replace("-", " ")} />
-            <Spec label="Size" value={product.size || "—"} />
-            <Spec label="Making" value={`${Math.round(product.makingPct * 100)}%`} />
-            <Spec label="Wearer" value={product.gender[0].toUpperCase() + product.gender.slice(1)} />
-            <Spec label="Reference" value={product.code || product.sku} />
-            <Spec label="Availability" value={product.inStock === false ? "Reserved" : "In stock"} />
-            <Spec label="Gemstone" value={product.gemstone || "—"} />
+            <Spec label={t("product.specKarat")} value={product.karat} />
+            <Spec label={t("product.specWeight")} value={`${product.weight} ${locale === "fa" ? "گرم" : "g"}`} />
+            <Spec label={t("product.specType")} value={product.typeLabel || product.category} />
+            <Spec label={t("product.specGoldColor")} value={(product.color || t("product.dash")).replace("-", " ")} />
+            <Spec label={t("product.specSize")} value={product.size || t("product.dash")} />
+            <Spec label={t("product.specMaking")} value={`${Math.round(product.makingPct * 100)}%`} />
+            <Spec label={t("product.specWearer")} value={tGender(product.gender === "unisex" ? "unisex" : product.gender, t)} />
+            <Spec label={t("product.specReference")} value={product.code || product.sku} />
+            <Spec label={t("product.specAvailability")} value={product.inStock === false ? t("product.availabilityReserved") : t("product.availabilityInStock")} />
+            <Spec label={t("product.specGemstone")} value={product.gemstone || t("product.noGemstone")} />
           </dl>
 
           <div className="mt-8">
