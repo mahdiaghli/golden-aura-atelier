@@ -8,6 +8,8 @@ import { SHOP_SEARCH_DEFAULT } from "@/lib/shop-search";
 import { products, priceBreakdown, formatToman, GOLD_RATE_PER_GRAM, type Product, type Karat } from "@/lib/products";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
+import { useI18n } from "@/lib/i18n/context";
+import { formatTomanLocalized, tGender } from "@/lib/i18n/helpers";
 
 type Review = {
   name: string;
@@ -68,10 +70,10 @@ export const Route = createFileRoute("/shop/$id")({
   notFoundComponent: () => (
     <Shell>
       <div className="max-w-3xl mx-auto px-6 py-32 text-center">
-        <h1 className="font-serif text-5xl">Piece not found</h1>
-        <p className="text-onyx/60 mt-4">This piece may have been reserved or archived.</p>
+        <h1 className="font-serif text-5xl">{"__NOTFOUND_TITLE__"}</h1>
+        <p className="text-onyx/60 mt-4">{"__NOTFOUND_BODY__"}</p>
         <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="inline-block mt-8 text-[11px] uppercase tracking-widest text-gold border-b border-gold pb-1">
-          Return to the collection
+          {"__NOTFOUND_CTA__"}
         </Link>
       </div>
     </Shell>
@@ -89,6 +91,8 @@ function ProductPage() {
   const [reviewName, setReviewName] = useState("");
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(Math.round(product.rating ?? 5));
+  const { t, locale } = useI18n();
+  const fmt = (n: number) => formatTomanLocalized(n, locale);
   const bd = priceBreakdown(product);
   const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 3);
   const reviewKey = `aurum-product-reviews-${product.id}`;
@@ -117,15 +121,15 @@ function ProductPage() {
       } else {
         await navigator.clipboard.writeText(url);
       }
-      toast.success("Link ready to share");
+      toast.success(t("product.shareSuccess"));
     } catch {
-      toast.error("Sharing was cancelled");
+      toast.error(t("product.shareError"));
     }
   };
 
   const submitReview = () => {
     if (!reviewName.trim() || !reviewText.trim()) {
-      toast.error("Please add your name and review text");
+      toast.error(t("product.reviewErrorFields"));
       return;
     }
 
@@ -133,7 +137,7 @@ function ProductPage() {
       name: reviewName.trim(),
       rating: reviewRating,
       text: reviewText.trim(),
-      date: "Just now",
+      date: t("product.justNow"),
       verified: false,
     };
 
@@ -141,7 +145,7 @@ function ProductPage() {
     setReviewName("");
     setReviewText("");
     setReviewRating(5);
-    toast.success("Your review has been saved locally");
+    toast.success(t("product.reviewSavedToast"));
   };
 
   return (
