@@ -78,13 +78,14 @@ function CustomOrderPage() {
 
   const { rates, isLive } = useLiveGold();
 
-  /** Estimate based on live gold rate + ~15% making charge + 9% VAT */
+  /** Estimate based on live gold rate + ~15% making charge + 7% seller profit + 2% tax */
   const estimate = useMemo(() => {
     const karatKey = (karat === "24" ? "24K" : karat === "21" ? "21K" : "18K") as keyof typeof rates;
     const gold = weight * rates[karatKey];
     const making = gold * 0.15;
-    const vat = (gold + making) * 0.09;
-    return { gold, making, vat, total: gold + making + vat };
+    const profit = (gold + making) * 0.07;
+    const tax = (gold + making + profit) * 0.02;
+    return { gold, making, profit, tax, total: gold + making + profit + tax };
   }, [karat, weight, rates]);
 
   const estimateNote = useMemo(() => {
@@ -536,7 +537,8 @@ function CustomOrderPage() {
               </p>
               <Row label={t("custom.rowGoldValue")} value={`${fmt(estimate.gold)} ${t("custom.tomanUnit")}`} />
               <Row label={t("custom.rowMakingFee")} value={`${fmt(estimate.making)} ${t("custom.tomanUnit")}`} />
-              <Row label={t("custom.rowVat")} value={`${fmt(estimate.vat)} ${t("custom.tomanUnit")}`} />
+              <Row label={t("custom.rowProfit")} value={`${fmt(estimate.profit)} ${t("custom.tomanUnit")}`} />
+              <Row label={t("custom.rowTax")} value={`${fmt(estimate.tax)} ${t("custom.tomanUnit")}`} />
               <Row label={t("custom.rowApproxTotal")} value={`${fmt(estimate.total)} ${t("custom.tomanUnit")}`} />
             </div>
             <p className="border-t border-onyx/10 pt-4 text-[11px] leading-relaxed text-onyx/50">
