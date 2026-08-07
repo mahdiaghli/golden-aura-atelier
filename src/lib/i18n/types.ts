@@ -37,6 +37,7 @@ export type Messages = {
   about: Record<string, unknown>;
   whyUs: Record<string, unknown>;
   profile: Record<string, string>;
+  wishlist: Record<string, string>;
   blog: Record<string, unknown>;
   product: Record<string, string>;
   under1000: Record<string, string>;
