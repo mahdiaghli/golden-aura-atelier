@@ -67,17 +67,20 @@ export const Route = createFileRoute("/shop/$id")({
     };
   },
   component: ProductPage,
-  notFoundComponent: () => (
-    <Shell>
-      <div className="max-w-3xl mx-auto px-6 py-32 text-center">
-        <h1 className="font-serif text-5xl">{"__NOTFOUND_TITLE__"}</h1>
-        <p className="text-onyx/60 mt-4">{"__NOTFOUND_BODY__"}</p>
-        <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="inline-block mt-8 text-[11px] uppercase tracking-widest text-gold border-b border-gold pb-1">
-          {"__NOTFOUND_CTA__"}
-        </Link>
-      </div>
-    </Shell>
-  ),
+  notFoundComponent: () => {
+    const { t } = useI18n();
+    return (
+      <Shell>
+        <div className="max-w-3xl mx-auto px-6 py-32 text-center">
+          <h1 className="font-serif text-5xl">{t("product.notFoundTitle")}</h1>
+          <p className="text-onyx/60 mt-4">{t("product.notFoundBody")}</p>
+          <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="inline-block mt-8 text-[11px] uppercase tracking-widest text-gold border-b border-gold pb-1">
+            {t("product.notFoundCta")}
+          </Link>
+        </div>
+      </Shell>
+    );
+  },
 });
 
 function ProductPage() {
