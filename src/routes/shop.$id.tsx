@@ -220,7 +220,8 @@ function ProductPage() {
             <div className="space-y-2 text-sm">
               <Row label={`Gold value (${product.weight}g × ${formatToman(GOLD_RATE_PER_GRAM[product.karat])})`} value={formatToman(bd.gold)} />
               <Row label={`Making (${Math.round(product.makingPct * 100)}%)`} value={formatToman(bd.making)} />
-              <Row label="VAT (9%)" value={formatToman(bd.vat)} />
+              <Row label="Seller profit (7%)" value={formatToman(bd.profit)} />
+              <Row label="Tax (2%)" value={formatToman(bd.tax)} />
               <div className="flex justify-between pt-3 border-t border-onyx/10">
                 <span className="font-bold uppercase tracking-widest text-xs text-gold">Total</span>
                 <span className="font-medium">{formatToman(bd.total)}</span>
