@@ -100,7 +100,7 @@ export function Nav() {
   const megaMenu = useMemo(
     () => [
       { label: t("nav.mega.products"), links: ["Ring", "Wedding Ring", "Engagement Ring", "Necklace", "Chain", "Bracelet", "Pendant", "Earrings"] },
-      { label: t("nav.mega.gemstones"), links: [t("nav.mega.diamond"), t("nav.mega.ruby"), t("nav.mega.emerald"), t("nav.mega.sapphire"), t("nav.mega.pearl"), t("nav.mega.topaz"), t("nav.mega.amethyst")] },
+      // { label: t("nav.mega.gemstones"), links: [t("nav.mega.diamond"), t("nav.mega.ruby"), t("nav.mega.emerald"), t("nav.mega.sapphire"), t("nav.mega.pearl"), t("nav.mega.topaz"), t("nav.mega.amethyst")] },
       { label: t("nav.mega.investment"), links: ["Bullion / Bar", "Coin", t("nav.mega.meltedGold"), t("nav.mega.secondHandGold")] },
       { label: t("nav.mega.gifts"), links: [t("nav.mega.birthdayGift"), t("nav.mega.anniversaryGift"), t("nav.mega.weddingGift"), t("nav.mega.graduationGift")] },
       { label: t("nav.mega.wedding"), links: ["Ring", t("nav.mega.bridalSet"), t("nav.mega.couplesSet")] },
@@ -120,6 +120,7 @@ export function Nav() {
             <Link to="/prices" className="hover:text-gold">Market</Link>
             <Link to="/custom" className="hover:text-gold">custom</Link>
             <Link to="/try-on" className="hover:text-gold">Try on</Link>
+            <Link to="/wallet" className="hover:text-gold">wallet</Link>
               <Link to="/investment" className="hover:text-gold">investment</Link>
 
             <Link to="/services" className="hover:text-gold">Services</Link>

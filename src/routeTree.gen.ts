@@ -26,6 +26,7 @@ import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as TryOnRouteImport } from './routes/try-on'
 import { Route as Under1000RouteImport } from './routes/under-1000'
+import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as WhyUsRouteImport } from './routes/why-us'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AdminRequestsRouteImport } from './routes/admin/requests'
@@ -118,6 +119,11 @@ const Under1000Route = Under1000RouteImport.update({
   path: '/under-1000',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WalletRoute = WalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WhyUsRoute = WhyUsRouteImport.update({
   id: '/why-us',
   path: '/why-us',
@@ -167,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/try-on': typeof TryOnRoute
   '/under-1000': typeof Under1000Route
+  '/wallet': typeof WalletRoute
   '/why-us': typeof WhyUsRoute
   '/wishlist': typeof WishlistRoute
   '/admin/requests': typeof AdminRequestsRoute
@@ -192,6 +199,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/try-on': typeof TryOnRoute
   '/under-1000': typeof Under1000Route
+  '/wallet': typeof WalletRoute
   '/why-us': typeof WhyUsRoute
   '/wishlist': typeof WishlistRoute
   '/admin/requests': typeof AdminRequestsRoute
@@ -218,6 +226,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/try-on': typeof TryOnRoute
   '/under-1000': typeof Under1000Route
+  '/wallet': typeof WalletRoute
   '/why-us': typeof WhyUsRoute
   '/wishlist': typeof WishlistRoute
   '/admin/requests': typeof AdminRequestsRoute
@@ -245,6 +254,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/try-on'
     | '/under-1000'
+    | '/wallet'
     | '/why-us'
     | '/wishlist'
     | '/admin/requests'
@@ -270,6 +280,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/try-on'
     | '/under-1000'
+    | '/wallet'
     | '/why-us'
     | '/wishlist'
     | '/admin/requests'
@@ -295,6 +306,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/try-on'
     | '/under-1000'
+    | '/wallet'
     | '/why-us'
     | '/wishlist'
     | '/admin/requests'
@@ -321,6 +333,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   TryOnRoute: typeof TryOnRoute
   Under1000Route: typeof Under1000Route
+  WalletRoute: typeof WalletRoute
   WhyUsRoute: typeof WhyUsRoute
   WishlistRoute: typeof WishlistRoute
   ShopIdRoute: typeof ShopIdRoute
@@ -449,6 +462,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Under1000RouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/wallet': {
+      id: '/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof WalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/why-us': {
       id: '/why-us'
       path: '/why-us'
@@ -524,6 +544,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   TryOnRoute: TryOnRoute,
   Under1000Route: Under1000Route,
+  WalletRoute: WalletRoute,
   WhyUsRoute: WhyUsRoute,
   WishlistRoute: WishlistRoute,
   ShopIdRoute: ShopIdRoute,
