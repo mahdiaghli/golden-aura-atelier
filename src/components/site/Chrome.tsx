@@ -116,7 +116,7 @@ export function Nav() {
         <div className="mx-auto flex h-10 max-w-7xl items-center justify-between px-6 text-[10px] uppercase tracking-[0.22em] text-onyx/55">
           <div className="flex items-center gap-5">
             <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="hover:text-gold">Shop</Link>
-            <Link to="/shop" search={{ ...SHOP_SEARCH_DEFAULT, stock: "made-to-order" }} className="hover:text-gold">Engraving</Link>
+            {/* <Link to="/shop" search={{ ...SHOP_SEARCH_DEFAULT, stock: "made-to-order" }} className="hover:text-gold">Engraving</Link> */}
             <Link to="/prices" className="hover:text-gold">Market</Link>
             <Link to="/custom" className="hover:text-gold">custom</Link>
             <Link to="/try-on" className="hover:text-gold">Try on</Link>
