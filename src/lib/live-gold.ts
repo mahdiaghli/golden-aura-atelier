@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { fetchMarketSnapshot, type MarketSnapshot } from "@/lib/market-prices";
+import { recordSnapshot } from "@/lib/price-history";
 import { GOLD_RATE_PER_GRAM, type Karat } from "@/lib/products";
 
 /**
@@ -62,6 +63,7 @@ export function loadLiveGold(force = false) {
   fetchMarketSnapshot()
     .then((snapshot) => {
       applyRates(snapshot);
+      recordSnapshot(snapshot);
       setState({
         snapshot,
         loading: false,

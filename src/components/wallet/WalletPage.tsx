@@ -5,65 +5,40 @@ import {
   BarChart3,
   Coins,
   History,
-  LineChart,
   Plus,
   Target,
+  TrendingDown,
   TrendingUp,
   Wallet as WalletIcon,
   AlertCircle,
   Send,
 } from "lucide-react";
-import { useState } from "react";
-import { useI18n } from "@/lib/i18n/context";
-import { formatMarketPrice } from "@/lib/market-prices";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { useLiveGold } from "@/lib/live-gold";
 import { SHOP_SEARCH_DEFAULT } from "@/lib/shop-search";
-
-// --- Mock Data (بعداً از API واقعی جایگزین شود) ---
-const MOCK_WALLET = {
-  totalValueToman: 125_480_000,
-  todayChangePercent: 7.4,
-  gold24kGrams: 4.825,
-  cashBalance: 2_450_000,
-  pendingSettlement: 15_000_000,
-  totalProfit: 18_250_000,
-  returnPercent: 17.2,
-  todayProfit: 1_420_000,
-  avgBuyPrice: 23_910_000,
-  currentPrice: 24_770_000,
-  profitPerGram: 860_000,
-  investmentGoalGrams: 20,
-  currentGoldGrams: 7.4,
-  allocation: [
-    { label: "طلای ۲۴ عیار", percent: 95, color: "bg-gold" },
-    { label: "موجودی نقد", percent: 3, color: "bg-emerald-500" },
-    { label: "گوی طلا", percent: 2, color: "bg-amber-600" },
-  ],
-  coins: [
-    { name: "گوی ۵ گرمی", status: "تحویل نشده", qty: 1 },
-    { name: "گوی ۱ گرمی", status: "در خزانه", qty: 2 },
-    { name: "گوی ۰.۵ گرمی", status: "ارسال شده", qty: 1 },
-  ],
-  transactions: [
-    { id: 1, type: "buy", title: "خرید طلا", amount: "+2.15 گرم", date: "۱۴۰۴/۰۵/۱۲", status: "success" },
-    { id: 2, type: "sell", title: "فروش طلا", amount: "۳٬۲۰۰٬۰۰۰ تومان", date: "۱۴۰۴/۰۵/۱۰", status: "success" },
-    { id: 3, type: "deposit", title: "واریز", amount: "+۵٬۰۰۰٬۰۰۰ تومان", date: "۱۴۰۴/۰۵/۰۸", status: "success" },
-    { id: 4, type: "withdraw", title: "برداشت", amount: "-۱٬۲۰۰٬۰۰۰ تومان", date: "۱۴۰۴/۰۵/۰۵", status: "pending" },
-    { id: 5, type: "physical", title: "ارسال فیزیکی", amount: "۱ گرم", date: "۱۴۰۴/۰۵/۰۱", status: "success" },
-  ],
-};
+import { addAlert, deposit, removeAlert, requestWithdraw, setGoalGrams, useWallet } from "@/lib/wallet";
 
 type Tab = "overview" | "assets" | "transactions" | "analysis";
+type TxFilter = "all" | "buy" | "sell" | "deposit" | "withdraw" | "physical";
+
+const faNum = (n: number) => new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 0 }).format(Math.round(n));
+const faDec = (n: number, d = 3) => new Intl.NumberFormat("fa-IR", { maximumFractionDigits: d }).format(n);
+const parseNum = (s: string) => Number(s.replace(/[^\d.]/g, ""));
 
 export function WalletPage() {
-  const { t } = useI18n();
-  const { snapshot: market } = useLiveGold();
+  const { rate24, isLive } = useLiveGold();
+  const { wallet, refresh } = useWallet(rate24);
+
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [showDepositModal, setShowDepositModal] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [depositAmount, setDepositAmount] = useState("");
   const [iban, setIban] = useState("");
-
-  const livePrice = market?.items?.[0] ? formatMarketPrice(market.items[0]) : "۲۴٬۷۷۰٬۰۰۰";
+  const [txFilter, setTxFilter] = useState<TxFilter>("all");
+  const [goalInput, setGoalInput] = useState("");
+  const [alertInput, setAlertInput] = useState("");
 
   const tabs = [
     { id: "overview" as Tab, label: "نمای کلی", icon: WalletIcon },
@@ -72,10 +47,55 @@ export function WalletPage() {
     { id: "analysis" as Tab, label: "تحلیل", icon: BarChart3 },
   ];
 
-  const progressPercent = Math.min(
-    100,
-    Math.round((MOCK_WALLET.currentGoldGrams / MOCK_WALLET.investmentGoalGrams) * 100)
+  const filters: { id: TxFilter; label: string }[] = [
+    { id: "all", label: "همه" },
+    { id: "buy", label: "خرید" },
+    { id: "sell", label: "فروش" },
+    { id: "deposit", label: "واریز" },
+    { id: "withdraw", label: "برداشت" },
+    { id: "physical", label: "ارسال" },
+  ];
+
+  const visibleTx = useMemo(
+    () => (txFilter === "all" ? wallet.transactions : wallet.transactions.filter((t) => t.type === txFilter)),
+    [wallet.transactions, txFilter],
   );
+
+  const inProfit = wallet.totalProfit >= 0;
+
+  const handleDeposit = () => {
+    const amount = parseNum(depositAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error("مبلغ واریز معتبر نیست");
+      return;
+    }
+    deposit(amount);
+    setDepositAmount("");
+    setShowDepositModal(false);
+    refresh();
+    toast.success("واریز با موفقیت ثبت شد");
+  };
+
+  const handleWithdraw = () => {
+    const amount = parseNum(withdrawAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error("مبلغ برداشت معتبر نیست");
+      return;
+    }
+    if (amount > wallet.cashBalance) {
+      toast.error("موجودی نقدی کافی نیست");
+      return;
+    }
+    if (iban.trim().length < 10) {
+      toast.error("شماره شبا را کامل وارد کنید");
+      return;
+    }
+    requestWithdraw(amount, iban.trim());
+    setWithdrawAmount("");
+    setShowWithdrawModal(false);
+    refresh();
+    toast.success("درخواست برداشت ثبت شد");
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -85,7 +105,9 @@ export function WalletPage() {
           <h1 className="font-serif text-3xl tracking-tight sm:text-4xl">
             کیف پول <span className="text-gold">AGHLI</span>
           </h1>
-          <p className="mt-1 text-sm text-onyx/60">مرکز مدیریت دارایی‌های طلا و نقدی شما</p>
+          <p className="mt-1 text-sm text-onyx/60">
+            مرکز مدیریت دارایی‌های طلا و نقدی شما — نرخ {isLive ? "زنده" : "پیش‌فرض"}: {faNum(rate24)} تومان بر گرم
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -96,8 +118,7 @@ export function WalletPage() {
             برداشت وجه
           </button>
           <Link
-            to="/shop"
-            search={{ ...SHOP_SEARCH_DEFAULT, category: "bullion" }}
+            to="/investment"
             className="flex items-center gap-2 rounded-full bg-gold px-4 py-2.5 text-sm font-semibold text-parchment transition hover:bg-gold/90"
           >
             <Plus size={16} />
@@ -113,9 +134,7 @@ export function WalletPage() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 whitespace-nowrap px-4 py-3 text-sm font-medium transition ${
-              activeTab === tab.id
-                ? "border-b-2 border-gold text-gold"
-                : "text-onyx/60 hover:text-onyx"
+              activeTab === tab.id ? "border-b-2 border-gold text-gold" : "text-onyx/60 hover:text-onyx"
             }`}
           >
             <tab.icon size={16} />
@@ -127,145 +146,125 @@ export function WalletPage() {
       {/* ===================== OVERVIEW ===================== */}
       {activeTab === "overview" && (
         <div className="space-y-6">
-          {/* Total Assets Card */}
           <div className="rounded-3xl border border-onyx/10 bg-white p-6 shadow-sm sm:p-8">
             <p className="text-[11px] uppercase tracking-[0.2em] text-onyx/50">دارایی کل</p>
             <div className="mt-2 flex flex-wrap items-end gap-3">
               <h2 className="font-serif text-4xl tracking-tight sm:text-5xl">
-                {MOCK_WALLET.totalValueToman.toLocaleString("fa-IR")}
+                {faNum(wallet.totalValue)}
                 <span className="mr-2 text-lg font-normal text-onyx/50">تومان</span>
               </h2>
-              <span className="mb-1 flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-sm font-medium text-emerald-700">
-                <TrendingUp size={14} />
-                +{MOCK_WALLET.todayChangePercent}٪ امروز
-              </span>
+              {wallet.buyValue > 0 && (
+                <span
+                  className={`mb-1 flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-medium ${
+                    inProfit ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+                  }`}
+                >
+                  {inProfit ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                  {inProfit ? "+" : "−"}
+                  {faNum(Math.abs(wallet.returnPercent))}٪ بازده
+                </span>
+              )}
             </div>
 
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <div className="rounded-2xl bg-parchment/60 p-4">
                 <p className="text-xs text-onyx/50">طلای ۲۴ عیار</p>
-                <p className="mt-1 text-2xl font-semibold">{MOCK_WALLET.gold24kGrams} گرم</p>
+                <p className="mt-1 text-2xl font-semibold">{faDec(wallet.grams)} گرم</p>
               </div>
               <div className="rounded-2xl bg-parchment/60 p-4">
                 <p className="text-xs text-onyx/50">موجودی ریالی</p>
-                <p className="mt-1 text-2xl font-semibold">
-                  {MOCK_WALLET.cashBalance.toLocaleString("fa-IR")} تومان
-                </p>
+                <p className="mt-1 text-2xl font-semibold">{faNum(wallet.cashBalance)} تومان</p>
               </div>
               <div className="rounded-2xl bg-parchment/60 p-4">
                 <p className="text-xs text-onyx/50">در انتظار تسویه</p>
-                <p className="mt-1 text-2xl font-semibold">
-                  {MOCK_WALLET.pendingSettlement.toLocaleString("fa-IR")} تومان
-                </p>
+                <p className="mt-1 text-2xl font-semibold">{faNum(wallet.pendingSettlement)} تومان</p>
               </div>
             </div>
 
-            {/* Quick Actions */}
             <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <QuickAction icon={ArrowDownLeft} label="واریز وجه" onClick={() => {}} />
+              <QuickAction icon={ArrowDownLeft} label="واریز وجه" onClick={() => setShowDepositModal(true)} />
               <QuickAction icon={ArrowUpRight} label="برداشت وجه" onClick={() => setShowWithdrawModal(true)} />
-              <QuickAction
-                icon={Plus}
-                label="خرید طلا"
-                to="/shop"
-                search={{ ...SHOP_SEARCH_DEFAULT, category: "bullion" }}
-              />
-              <QuickAction icon={Send} label="فروش طلا" onClick={() => {}} />
+              <QuickAction icon={Plus} label="خرید طلا" to="/investment" />
+              <QuickAction icon={Send} label="فروش طلا" to="/investment" />
             </div>
           </div>
 
-          {/* Profit + Chart Row */}
+          {/* Profit + Allocation */}
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="rounded-3xl border border-onyx/10 bg-white p-6">
               <p className="text-[11px] uppercase tracking-[0.2em] text-onyx/50">سود سرمایه</p>
-              <p className="mt-3 font-serif text-3xl text-emerald-600">
-                +{MOCK_WALLET.totalProfit.toLocaleString("fa-IR")}
+              <p className={`mt-3 font-serif text-3xl ${inProfit ? "text-emerald-600" : "text-rose-600"}`}>
+                {inProfit ? "+" : "−"}
+                {faNum(Math.abs(wallet.totalProfit))}
               </p>
               <p className="mt-1 text-sm text-onyx/60">تومان</p>
               <div className="mt-6 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-onyx/60">بازده کل</span>
-                  <span className="font-medium text-emerald-600">+{MOCK_WALLET.returnPercent}٪</span>
+                  <span className={`font-medium ${inProfit ? "text-emerald-600" : "text-rose-600"}`}>
+                    {inProfit ? "+" : "−"}
+                    {faNum(Math.abs(wallet.returnPercent))}٪
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-onyx/60">سود امروز</span>
-                  <span className="font-medium">+{MOCK_WALLET.todayProfit.toLocaleString("fa-IR")}</span>
+                  <span className="text-onyx/60">ارزش خرید</span>
+                  <span className="font-medium">{faNum(wallet.buyValue)}</span>
                 </div>
               </div>
             </div>
 
             <div className="rounded-3xl border border-onyx/10 bg-white p-6 lg:col-span-2">
-              <div className="mb-4 flex items-center justify-between">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-onyx/50">نمودار ارزش کیف پول</p>
-                <div className="flex gap-1 text-xs">
-                  {["1D", "1W", "1M", "3M", "6M", "1Y", "ALL"].map((r) => (
-                    <button
-                      key={r}
-                      className={`rounded-full px-2.5 py-1 ${
-                        r === "1M" ? "bg-gold text-parchment" : "text-onyx/50 hover:text-onyx"
-                      }`}
-                    >
-                      {r}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex h-48 items-center justify-center rounded-2xl bg-parchment/40">
-                <div className="text-center text-onyx/40">
-                  <LineChart size={32} className="mx-auto mb-2" />
-                  <p className="text-sm">نمودار ارزش دارایی (در حال اتصال به داده زنده)</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Allocation + Avg Buy */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-3xl border border-onyx/10 bg-white p-6">
               <p className="mb-5 text-[11px] uppercase tracking-[0.2em] text-onyx/50">تخصیص دارایی</p>
-              <div className="flex items-center gap-8">
-                <div className="relative h-32 w-32 shrink-0">
-                  <div className="absolute inset-0 rounded-full border-[12px] border-gold" />
-                  <div className="absolute inset-3 rounded-full border-[8px] border-emerald-500" />
-                  <div className="absolute inset-6 rounded-full border-[6px] border-amber-600" />
-                  <div className="absolute inset-0 flex items-center justify-center text-lg font-bold">
-                    ۹۵٪
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  {MOCK_WALLET.allocation.map((item) => (
-                    <div key={item.label} className="flex items-center gap-3 text-sm">
-                      <span className={`h-3 w-3 rounded-full ${item.color}`} />
-                      <span className="text-onyx/70">{item.label}</span>
-                      <span className="mr-auto font-medium">{item.percent}٪</span>
+              {wallet.totalValue === 0 ? (
+                <EmptyState
+                  text="هنوز دارایی ثبت نشده است."
+                  ctaText="شروع سرمایه‌گذاری"
+                  to="/investment"
+                />
+              ) : (
+                <div className="space-y-4">
+                  {wallet.allocation.map((item) => (
+                    <div key={item.label}>
+                      <div className="mb-1 flex items-center justify-between text-sm">
+                        <span className="text-onyx/70">{item.label}</span>
+                        <span className="font-medium">{faNum(item.percent)}٪</span>
+                      </div>
+                      <div className="h-2.5 overflow-hidden rounded-full bg-onyx/10">
+                        <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.percent}%` }} />
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
+              )}
             </div>
+          </div>
 
-            <div className="rounded-3xl border border-onyx/10 bg-white p-6">
-              <p className="mb-5 text-[11px] uppercase tracking-[0.2em] text-onyx/50">میانگین خرید</p>
-              <div className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-onyx/60">میانگین خرید</span>
-                  <span className="font-semibold">{MOCK_WALLET.avgBuyPrice.toLocaleString("fa-IR")}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-onyx/60">قیمت امروز</span>
-                  <span className="font-semibold">{livePrice}</span>
-                </div>
-                <div className="flex justify-between border-t border-onyx/10 pt-4">
-                  <span className="text-onyx/60">سود هر گرم</span>
-                  <span className="font-semibold text-emerald-600">
-                    +{MOCK_WALLET.profitPerGram.toLocaleString("fa-IR")}
-                  </span>
-                </div>
+          {/* Avg buy */}
+          <div className="rounded-3xl border border-onyx/10 bg-white p-6">
+            <p className="mb-5 text-[11px] uppercase tracking-[0.2em] text-onyx/50">میانگین خرید</p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="flex justify-between sm:block">
+                <span className="text-onyx/60">میانگین خرید</span>
+                <span className="font-semibold sm:mt-1 sm:block">{faNum(wallet.avgBuyPrice)}</span>
+              </div>
+              <div className="flex justify-between sm:block">
+                <span className="text-onyx/60">قیمت امروز</span>
+                <span className="font-semibold sm:mt-1 sm:block">{faNum(rate24)}</span>
+              </div>
+              <div className="flex justify-between sm:block">
+                <span className="text-onyx/60">سود هر گرم</span>
+                <span
+                  className={`font-semibold sm:mt-1 sm:block ${
+                    wallet.profitPerGram >= 0 ? "text-emerald-600" : "text-rose-600"
+                  }`}
+                >
+                  {wallet.profitPerGram >= 0 ? "+" : "−"}
+                  {faNum(Math.abs(wallet.profitPerGram))}
+                </span>
               </div>
             </div>
           </div>
 
-          {/* AI Insight */}
           <div className="rounded-3xl border border-gold/20 bg-gradient-to-br from-gold/5 to-transparent p-6">
             <div className="flex items-start gap-3">
               <div className="rounded-full bg-gold/10 p-2">
@@ -274,7 +273,11 @@ export function WalletPage() {
               <div>
                 <p className="font-medium">تحلیل امروز</p>
                 <p className="mt-2 text-sm leading-relaxed text-onyx/70">
-                  قیمت طلا امروز ۱.۳٪ افزایش داشته است. میانگین خرید شما پایین‌تر از قیمت فعلی است و در حال حاضر در سود هستید.
+                  {wallet.grams === 0
+                    ? "هنوز طلایی در کیف پول شما ثبت نشده است. با خرید مقدار دلخواه می‌توانید دارایی خود را زنده دنبال کنید."
+                    : inProfit
+                      ? `میانگین خرید شما ${faNum(wallet.avgBuyPrice)} تومان است و نرخ فعلی بالاتر از آن قرار دارد؛ در حال حاضر در سود هستید.`
+                      : `نرخ فعلی پایین‌تر از میانگین خرید شما (${faNum(wallet.avgBuyPrice)} تومان) است؛ دارایی شما موقتاً در زیان قرار دارد.`}{" "}
                   این صرفاً یک تحلیل اطلاعاتی است و توصیه قطعی برای خرید یا فروش نیست.
                 </p>
               </div>
@@ -287,15 +290,11 @@ export function WalletPage() {
       {activeTab === "assets" && (
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <AssetCard title="طلای ۲۴ عیار" value={`${MOCK_WALLET.gold24kGrams} گرم`} subtitle="قابل فروش و ارسال" />
-            <AssetCard
-              title="موجودی نقد"
-              value={`${MOCK_WALLET.cashBalance.toLocaleString("fa-IR")} تومان`}
-              subtitle="قابل برداشت"
-            />
+            <AssetCard title="طلای ۲۴ عیار" value={`${faDec(wallet.grams)} گرم`} subtitle="قابل فروش و ارسال" />
+            <AssetCard title="موجودی نقد" value={`${faNum(wallet.cashBalance)} تومان`} subtitle="قابل برداشت" />
             <AssetCard
               title="در انتظار تسویه"
-              value={`${MOCK_WALLET.pendingSettlement.toLocaleString("fa-IR")} تومان`}
+              value={`${faNum(wallet.pendingSettlement)} تومان`}
               subtitle="پس از تأیید فروش"
             />
           </div>
@@ -303,48 +302,49 @@ export function WalletPage() {
           <div className="rounded-3xl border border-onyx/10 bg-white p-6">
             <div className="mb-5 flex items-center justify-between">
               <h3 className="font-medium">گوی‌های من</h3>
-              <Link
-                to="/shop"
-                search={{ ...SHOP_SEARCH_DEFAULT, category: "bullion" }}
-                className="text-sm text-gold hover:underline"
-              >
+              <Link to="/investment" className="text-sm text-gold hover:underline">
                 خرید گوی جدید
               </Link>
             </div>
-            <div className="space-y-3">
-              {MOCK_WALLET.coins.map((coin, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between rounded-2xl border border-onyx/8 px-4 py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-gold/10 p-2">
-                      <Coins size={18} className="text-gold" />
+            {wallet.balls.length === 0 ? (
+              <EmptyState text="هنوز گوی طلایی ثبت نشده است." ctaText="مشاهده گوی‌ها" to="/investment" />
+            ) : (
+              <div className="space-y-3">
+                {wallet.balls.map((coin) => (
+                  <div
+                    key={`${coin.name}-${coin.status}`}
+                    className="flex items-center justify-between rounded-2xl border border-onyx/10 px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-full bg-gold/10 p-2">
+                        <Coins size={18} className="text-gold" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{coin.name}</p>
+                        <p className="text-xs text-onyx/50">{coin.status}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">{coin.name}</p>
-                      <p className="text-xs text-onyx/50">{coin.status}</p>
-                    </div>
+                    <span className="text-sm font-medium">{faNum(coin.qty)}×</span>
                   </div>
-                  <span className="text-sm font-medium">{coin.qty}×</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="rounded-3xl border border-onyx/10 bg-white p-6">
             <h3 className="mb-4 font-medium">ارسال فیزیکی</h3>
             <p className="mb-4 text-sm text-onyx/60">
-              موجودی قابل ارسال: <strong>۶ گرم</strong>
+              موجودی قابل ارسال: <strong>{faDec(wallet.grams)} گرم</strong>
             </p>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               {["پست", "تیپاکس", "پیک", "حضوری"].map((method) => (
-                <button
+                <Link
                   key={method}
-                  className="rounded-2xl border border-onyx/10 px-4 py-3 text-sm transition hover:border-gold hover:text-gold"
+                  to="/investment"
+                  className="rounded-2xl border border-onyx/10 px-4 py-3 text-center text-sm transition hover:border-gold hover:text-gold"
                 >
                   {method}
-                </button>
+                </Link>
               ))}
             </div>
           </div>
@@ -355,57 +355,60 @@ export function WalletPage() {
       {activeTab === "transactions" && (
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
-            {["همه", "خرید", "فروش", "واریز", "برداشت", "ارسال"].map((f) => (
+            {filters.map((f) => (
               <button
-                key={f}
+                key={f.id}
+                onClick={() => setTxFilter(f.id)}
                 className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                  f === "همه"
+                  txFilter === f.id
                     ? "border-gold bg-gold/10 text-gold"
                     : "border-onyx/10 text-onyx/60 hover:border-gold"
                 }`}
               >
-                {f}
+                {f.label}
               </button>
             ))}
           </div>
 
           <div className="overflow-hidden rounded-3xl border border-onyx/10 bg-white">
-            {MOCK_WALLET.transactions.map((tx) => (
-              <div
-                key={tx.id}
-                className="flex items-center justify-between border-b border-onyx/8 px-5 py-4 last:border-0"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`rounded-full p-2 ${
-                      tx.type === "buy" || tx.type === "deposit"
-                        ? "bg-emerald-50 text-emerald-600"
-                        : "bg-rose-50 text-rose-600"
-                    }`}
-                  >
-                    {tx.type === "buy" || tx.type === "deposit" ? (
-                      <ArrowDownLeft size={16} />
-                    ) : (
-                      <ArrowUpRight size={16} />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium">{tx.title}</p>
-                    <p className="text-xs text-onyx/50">{tx.date}</p>
-                  </div>
-                </div>
-                <div className="text-left">
-                  <p className="font-medium">{tx.amount}</p>
-                  <p
-                    className={`text-xs ${
-                      tx.status === "success" ? "text-emerald-600" : "text-amber-600"
-                    }`}
-                  >
-                    {tx.status === "success" ? "موفق" : "در انتظار"}
-                  </p>
-                </div>
+            {visibleTx.length === 0 ? (
+              <div className="p-8">
+                <EmptyState text="تراکنشی برای نمایش وجود ندارد." ctaText="ثبت اولین خرید" to="/investment" />
               </div>
-            ))}
+            ) : (
+              visibleTx.map((tx) => (
+                <div
+                  key={tx.id}
+                  className="flex items-center justify-between border-b border-onyx/10 px-5 py-4 last:border-0"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`rounded-full p-2 ${
+                        tx.type === "buy" || tx.type === "deposit"
+                          ? "bg-emerald-50 text-emerald-600"
+                          : "bg-rose-50 text-rose-600"
+                      }`}
+                    >
+                      {tx.type === "buy" || tx.type === "deposit" ? (
+                        <ArrowDownLeft size={16} />
+                      ) : (
+                        <ArrowUpRight size={16} />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">{tx.title}</p>
+                      <p className="text-xs text-onyx/50">{tx.date}</p>
+                    </div>
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium">{tx.amount}</p>
+                    <p className={`text-xs ${tx.status === "success" ? "text-emerald-600" : "text-amber-600"}`}>
+                      {tx.status === "success" ? "موفق" : "در انتظار"}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
@@ -414,9 +417,17 @@ export function WalletPage() {
       {activeTab === "analysis" && (
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-3">
-            <PerfCard title="امسال" value="+۲۸٪" />
-            <PerfCard title="ماه گذشته" value="+۴٪" />
-            <PerfCard title="این هفته" value="+۱.۷٪" />
+            <PerfCard title="ارزش امروز" value={`${faNum(wallet.goldValue)}`} />
+            <PerfCard
+              title="سود / زیان"
+              value={`${inProfit ? "+" : "−"}${faNum(Math.abs(wallet.totalProfit))}`}
+              negative={!inProfit}
+            />
+            <PerfCard
+              title="بازده"
+              value={`${inProfit ? "+" : "−"}${faNum(Math.abs(wallet.returnPercent))}٪`}
+              negative={!inProfit}
+            />
           </div>
 
           <div className="rounded-3xl border border-onyx/10 bg-white p-6">
@@ -426,15 +437,42 @@ export function WalletPage() {
             </div>
             <div className="mb-2 flex justify-between text-sm">
               <span>
-                پیشرفت: {MOCK_WALLET.currentGoldGrams} از {MOCK_WALLET.investmentGoalGrams} گرم
+                پیشرفت: {faDec(wallet.grams)} از {faNum(wallet.goalGrams)} گرم
               </span>
-              <span className="font-medium">{progressPercent}٪</span>
+              <span className="font-medium">{faNum(wallet.progressPercent)}٪</span>
             </div>
             <div className="h-3 overflow-hidden rounded-full bg-onyx/10">
               <div
                 className="h-full rounded-full bg-gold transition-all"
-                style={{ width: `${progressPercent}%` }}
+                style={{ width: `${wallet.progressPercent}%` }}
               />
+            </div>
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="flex-1">
+                <label className="mb-1 block text-xs text-onyx/50">هدف جدید (گرم)</label>
+                <input
+                  value={goalInput}
+                  onChange={(e) => setGoalInput(e.target.value)}
+                  placeholder={faNum(wallet.goalGrams)}
+                  className="w-full rounded-2xl border border-onyx/15 bg-parchment/40 px-4 py-3 text-sm outline-none focus:border-gold"
+                />
+              </div>
+              <button
+                onClick={() => {
+                  const grams = parseNum(goalInput);
+                  if (!Number.isFinite(grams) || grams <= 0) {
+                    toast.error("مقدار هدف معتبر نیست");
+                    return;
+                  }
+                  setGoalGrams(grams);
+                  setGoalInput("");
+                  refresh();
+                  toast.success("هدف سرمایه‌گذاری به‌روزرسانی شد");
+                }}
+                className="rounded-2xl bg-onyx px-6 py-3 text-sm font-semibold text-parchment transition hover:bg-gold"
+              >
+                ثبت هدف
+              </button>
             </div>
           </div>
 
@@ -442,15 +480,90 @@ export function WalletPage() {
             <h3 className="mb-4 font-medium">هشدار قیمت</h3>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
               <div className="flex-1">
-                <label className="mb-1 block text-xs text-onyx/50">اگر قیمت هر گرم رسید به</label>
+                <label className="mb-1 block text-xs text-onyx/50">اگر قیمت هر گرم رسید به (تومان)</label>
                 <input
-                  type="text"
-                  placeholder="۳۰٬۰۰۰٬۰۰۰"
+                  value={alertInput}
+                  onChange={(e) => setAlertInput(e.target.value)}
+                  placeholder={faNum(rate24)}
                   className="w-full rounded-2xl border border-onyx/15 bg-parchment/40 px-4 py-3 text-sm outline-none focus:border-gold"
                 />
               </div>
-              <button className="rounded-2xl bg-gold px-6 py-3 text-sm font-semibold text-parchment">
+              <button
+                onClick={() => {
+                  const target = parseNum(alertInput);
+                  if (!Number.isFinite(target) || target <= 0) {
+                    toast.error("قیمت هشدار معتبر نیست");
+                    return;
+                  }
+                  addAlert(target);
+                  setAlertInput("");
+                  refresh();
+                  toast.success("هشدار قیمت ثبت شد");
+                }}
+                className="rounded-2xl bg-gold px-6 py-3 text-sm font-semibold text-parchment"
+              >
                 ثبت هشدار
+              </button>
+            </div>
+
+            {wallet.alerts.length > 0 && (
+              <div className="mt-5 space-y-2">
+                {wallet.alerts.map((alert) => {
+                  const reached = rate24 >= alert.targetPrice;
+                  return (
+                    <div
+                      key={alert.id}
+                      className="flex items-center justify-between rounded-2xl border border-onyx/10 px-4 py-3 text-sm"
+                    >
+                      <span>
+                        {faNum(alert.targetPrice)} تومان
+                        <span className={`mr-3 text-xs ${reached ? "text-emerald-600" : "text-onyx/50"}`}>
+                          {reached ? "فعال شد" : "در انتظار"}
+                        </span>
+                      </span>
+                      <button
+                        onClick={() => {
+                          removeAlert(alert.id);
+                          refresh();
+                        }}
+                        className="text-xs text-rose-600 hover:underline"
+                      >
+                        حذف
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ===================== DEPOSIT MODAL ===================== */}
+      {showDepositModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-onyx/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
+            <h3 className="mb-1 font-serif text-2xl">واریز وجه</h3>
+            <p className="mb-6 text-sm text-onyx/60">مبلغ به موجودی ریالی کیف پول شما اضافه می‌شود</p>
+            <label className="mb-1 block text-xs text-onyx/50">مبلغ (تومان)</label>
+            <input
+              value={depositAmount}
+              onChange={(e) => setDepositAmount(e.target.value)}
+              placeholder="۱٬۰۰۰٬۰۰۰"
+              className="w-full rounded-2xl border border-onyx/15 px-4 py-3 text-sm outline-none focus:border-gold"
+            />
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setShowDepositModal(false)}
+                className="flex-1 rounded-2xl border border-onyx/15 py-3 text-sm font-medium"
+              >
+                انصراف
+              </button>
+              <button
+                onClick={handleDeposit}
+                className="flex-1 rounded-2xl bg-gold py-3 text-sm font-semibold text-parchment"
+              >
+                ثبت واریز
               </button>
             </div>
           </div>
@@ -479,13 +592,11 @@ export function WalletPage() {
                 <input
                   value={withdrawAmount}
                   onChange={(e) => setWithdrawAmount(e.target.value)}
-                  placeholder="حداکثر ۲٬۴۵۰٬۰۰۰"
+                  placeholder={`حداکثر ${faNum(wallet.cashBalance)}`}
                   className="w-full rounded-2xl border border-onyx/15 px-4 py-3 text-sm outline-none focus:border-gold"
                 />
               </div>
-              <p className="text-xs text-onyx/50">
-                موجودی قابل برداشت: {MOCK_WALLET.cashBalance.toLocaleString("fa-IR")} تومان
-              </p>
+              <p className="text-xs text-onyx/50">موجودی قابل برداشت: {faNum(wallet.cashBalance)} تومان</p>
             </div>
 
             <div className="mt-6 flex gap-3">
@@ -496,10 +607,7 @@ export function WalletPage() {
                 انصراف
               </button>
               <button
-                onClick={() => {
-                  setShowWithdrawModal(false);
-                  alert("درخواست برداشت با موفقیت ثبت شد");
-                }}
+                onClick={handleWithdraw}
                 className="flex-1 rounded-2xl bg-gold py-3 text-sm font-semibold text-parchment"
               >
                 ثبت درخواست
@@ -512,19 +620,18 @@ export function WalletPage() {
   );
 }
 
-// --- Helper Components ---
+/* --- Helper Components --- */
+
 function QuickAction({
   icon: Icon,
   label,
   onClick,
   to,
-  search,
 }: {
-  icon: any;
+  icon: typeof Plus;
   label: string;
   onClick?: () => void;
   to?: string;
-  search?: any;
 }) {
   const content = (
     <div className="flex flex-col items-center gap-2 rounded-2xl border border-onyx/10 bg-parchment/40 py-4 transition hover:border-gold hover:bg-gold/5">
@@ -533,14 +640,35 @@ function QuickAction({
     </div>
   );
 
-  if (to) {
+  if (to === "/investment") {
+    return <Link to="/investment">{content}</Link>;
+  }
+  if (to === "/shop") {
     return (
-      <Link to={to} search={search}>
+      <Link to="/shop" search={{ ...SHOP_SEARCH_DEFAULT }}>
         {content}
       </Link>
     );
   }
-  return <button onClick={onClick}>{content}</button>;
+  return (
+    <button type="button" onClick={onClick} className="w-full">
+      {content}
+    </button>
+  );
+}
+
+function EmptyState({ text, ctaText, to }: { text: string; ctaText: string; to: "/investment" }) {
+  return (
+    <div className="flex flex-col items-center gap-3 py-6 text-center">
+      <p className="text-sm text-onyx/55">{text}</p>
+      <Link
+        to={to}
+        className="rounded-full border border-gold px-4 py-2 text-xs font-medium text-gold transition hover:bg-gold hover:text-parchment"
+      >
+        {ctaText}
+      </Link>
+    </div>
+  );
 }
 
 function AssetCard({ title, value, subtitle }: { title: string; value: string; subtitle: string }) {
@@ -553,11 +681,11 @@ function AssetCard({ title, value, subtitle }: { title: string; value: string; s
   );
 }
 
-function PerfCard({ title, value }: { title: string; value: string }) {
+function PerfCard({ title, value, negative }: { title: string; value: string; negative?: boolean }) {
   return (
     <div className="rounded-3xl border border-onyx/10 bg-white p-5 text-center">
       <p className="text-xs text-onyx/50">{title}</p>
-      <p className="mt-2 text-2xl font-semibold text-emerald-600">{value}</p>
+      <p className={`mt-2 text-2xl font-semibold ${negative ? "text-rose-600" : "text-emerald-600"}`}>{value}</p>
     </div>
   );
 }

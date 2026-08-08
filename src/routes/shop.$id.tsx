@@ -8,6 +8,8 @@ import { SHOP_SEARCH_DEFAULT } from "@/lib/shop-search";
 import { products, priceBreakdown, formatToman, GOLD_RATE_PER_GRAM, type Product, type Karat } from "@/lib/products";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
+import { useI18n } from "@/lib/i18n/context";
+import { formatTomanLocalized, tGender } from "@/lib/i18n/helpers";
 
 type Review = {
   name: string;
@@ -65,17 +67,20 @@ export const Route = createFileRoute("/shop/$id")({
     };
   },
   component: ProductPage,
-  notFoundComponent: () => (
-    <Shell>
-      <div className="max-w-3xl mx-auto px-6 py-32 text-center">
-        <h1 className="font-serif text-5xl">Piece not found</h1>
-        <p className="text-onyx/60 mt-4">This piece may have been reserved or archived.</p>
-        <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="inline-block mt-8 text-[11px] uppercase tracking-widest text-gold border-b border-gold pb-1">
-          Return to the collection
-        </Link>
-      </div>
-    </Shell>
-  ),
+  notFoundComponent: () => {
+    const { t } = useI18n();
+    return (
+      <Shell>
+        <div className="max-w-3xl mx-auto px-6 py-32 text-center">
+          <h1 className="font-serif text-5xl">{t("product.notFoundTitle")}</h1>
+          <p className="text-onyx/60 mt-4">{t("product.notFoundBody")}</p>
+          <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="inline-block mt-8 text-[11px] uppercase tracking-widest text-gold border-b border-gold pb-1">
+            {t("product.notFoundCta")}
+          </Link>
+        </div>
+      </Shell>
+    );
+  },
 });
 
 function ProductPage() {
@@ -89,6 +94,8 @@ function ProductPage() {
   const [reviewName, setReviewName] = useState("");
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(Math.round(product.rating ?? 5));
+  const { t, locale } = useI18n();
+  const fmt = (n: number) => formatTomanLocalized(n, locale);
   const bd = priceBreakdown(product);
   const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 3);
   const reviewKey = `aurum-product-reviews-${product.id}`;
@@ -117,15 +124,15 @@ function ProductPage() {
       } else {
         await navigator.clipboard.writeText(url);
       }
-      toast.success("Link ready to share");
+      toast.success(t("product.shareSuccess"));
     } catch {
-      toast.error("Sharing was cancelled");
+      toast.error(t("product.shareError"));
     }
   };
 
   const submitReview = () => {
     if (!reviewName.trim() || !reviewText.trim()) {
-      toast.error("Please add your name and review text");
+      toast.error(t("product.reviewErrorFields"));
       return;
     }
 
@@ -133,7 +140,7 @@ function ProductPage() {
       name: reviewName.trim(),
       rating: reviewRating,
       text: reviewText.trim(),
-      date: "Just now",
+      date: t("product.justNow"),
       verified: false,
     };
 
@@ -141,16 +148,16 @@ function ProductPage() {
     setReviewName("");
     setReviewText("");
     setReviewRating(5);
-    toast.success("Your review has been saved locally");
+    toast.success(t("product.reviewSavedToast"));
   };
 
   return (
     <Shell>
       <div className="max-w-7xl mx-auto px-6 pt-6">
         <nav className="text-[10px] uppercase tracking-widest text-onyx/50">
-          <Link to="/" className="hover:text-gold">Home</Link>
+          <Link to="/" className="hover:text-gold">{t("product.breadcrumbHome")}</Link>
           <span className="mx-2">/</span>
-          <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="hover:text-gold">Collection</Link>
+          <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="hover:text-gold">{t("product.breadcrumbCollection")}</Link>
           <span className="mx-2">/</span>
           <span className="text-onyx">{product.name}</span>
         </nav>
@@ -186,26 +193,26 @@ function ProductPage() {
         <div>
           <span className="text-[11px] uppercase tracking-[0.3em] text-gold">{product.category}</span>
           <h1 className="font-serif text-4xl md:text-5xl mt-3 leading-tight">{product.name}</h1>
-          <p className="text-[11px] uppercase tracking-widest text-onyx/40 mt-2">SKU {product.sku}</p>
+          <p className="text-[11px] uppercase tracking-widest text-onyx/40 mt-2">{t("product.skuLabel", { sku: product.sku })}</p>
 
           <div className="mt-8 flex items-baseline gap-3">
-            <span className="text-4xl font-serif">{formatToman(bd.total)}</span>
-            <span className="text-xs uppercase tracking-widest text-onyx/50">Incl. VAT</span>
+            <span className="text-4xl font-serif">{fmt(bd.total)}</span>
+            <span className="text-xs uppercase tracking-widest text-onyx/50">{t("product.vatIncluded")}</span>
           </div>
 
           <p className="text-onyx/70 mt-8 font-light leading-relaxed">{product.description}</p>
 
           <dl className="mt-10 grid grid-cols-2 gap-6 border-y border-onyx/10 py-6">
-            <Spec label="Karat" value={product.karat} />
-            <Spec label="Weight" value={`${product.weight} g`} />
-            <Spec label="Type" value={product.typeLabel || product.category} />
-            <Spec label="Gold colour" value={(product.color || "—").replace("-", " ")} />
-            <Spec label="Size" value={product.size || "—"} />
-            <Spec label="Making" value={`${Math.round(product.makingPct * 100)}%`} />
-            <Spec label="Wearer" value={product.gender[0].toUpperCase() + product.gender.slice(1)} />
-            <Spec label="Reference" value={product.code || product.sku} />
-            <Spec label="Availability" value={product.inStock === false ? "Reserved" : "In stock"} />
-            <Spec label="Gemstone" value={product.gemstone || "—"} />
+            <Spec label={t("product.specKarat")} value={product.karat} />
+            <Spec label={t("product.specWeight")} value={`${product.weight} ${locale === "fa" ? "گرم" : "g"}`} />
+            <Spec label={t("product.specType")} value={product.typeLabel || product.category} />
+            <Spec label={t("product.specGoldColor")} value={(product.color || t("product.dash")).replace("-", " ")} />
+            <Spec label={t("product.specSize")} value={product.size || t("product.dash")} />
+            <Spec label={t("product.specMaking")} value={`${Math.round(product.makingPct * 100)}%`} />
+            <Spec label={t("product.specWearer")} value={tGender(product.gender === "unisex" ? "unisex" : product.gender, t)} />
+            <Spec label={t("product.specReference")} value={product.code || product.sku} />
+            <Spec label={t("product.specAvailability")} value={product.inStock === false ? t("product.availabilityReserved") : t("product.availabilityInStock")} />
+            <Spec label={t("product.specGemstone")} value={product.gemstone || t("product.noGemstone")} />
           </dl>
 
           <div className="mt-8">
@@ -213,7 +220,8 @@ function ProductPage() {
             <div className="space-y-2 text-sm">
               <Row label={`Gold value (${product.weight}g × ${formatToman(GOLD_RATE_PER_GRAM[product.karat])})`} value={formatToman(bd.gold)} />
               <Row label={`Making (${Math.round(product.makingPct * 100)}%)`} value={formatToman(bd.making)} />
-              <Row label="VAT (9%)" value={formatToman(bd.vat)} />
+              <Row label="Seller profit (7%)" value={formatToman(bd.profit)} />
+              <Row label="Tax (2%)" value={formatToman(bd.tax)} />
               <div className="flex justify-between pt-3 border-t border-onyx/10">
                 <span className="font-bold uppercase tracking-widest text-xs text-gold">Total</span>
                 <span className="font-medium">{formatToman(bd.total)}</span>

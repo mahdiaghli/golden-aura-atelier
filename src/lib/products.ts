@@ -58,15 +58,19 @@ export const GOLD_RATE_PER_GRAM: Record<Karat, number> = {
   "22K": 4_215_000,
   "24K": 4_602_000,
 };
-export const VAT_PCT = 0.09;
+/** سود فروشنده ۷٪ روی ارزش طلا + اجرت */
+export const SELLER_PROFIT_PCT = 0.07;
+/** مالیات ۲٪ روی مجموع (طلا + اجرت + سود) */
+export const TAX_PCT = 0.02;
 
 export function priceBreakdown(p: Product) {
   const gold = p.weight * GOLD_RATE_PER_GRAM[p.karat];
   const making = gold * p.makingPct;
   const subtotal = gold + making;
-  const vat = subtotal * VAT_PCT;
-  const total = subtotal + vat;
-  return { gold, making, vat, total };
+  const profit = subtotal * SELLER_PROFIT_PCT;
+  const tax = (subtotal + profit) * TAX_PCT;
+  const total = subtotal + profit + tax;
+  return { gold, making, profit, tax, total };
 }
 
 export function formatToman(n: number) {
