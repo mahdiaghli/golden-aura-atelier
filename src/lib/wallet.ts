@@ -4,6 +4,7 @@
  * کیف پول و صفحه‌ی investment همیشه یک داده‌ی واحد را نشان دهند.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { getSessionUser } from "./auth";
 import { goldHoldings, listGoldOrders, type GoldOrder } from "./requests";
 
 export type CashEntry = {
@@ -156,7 +157,7 @@ export type WalletSnapshot = {
 
 export function buildWalletSnapshot(rate24: number): WalletSnapshot {
   const holdings = goldHoldings();
-  const orders = listGoldOrders();
+  const orders = listGoldOrders(getSessionUser()?.email);
   const cash = listCashEntries();
 
   const deposits = cash.filter((c) => c.type === "deposit").reduce((s, c) => s + c.amount, 0);

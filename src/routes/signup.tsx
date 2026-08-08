@@ -3,8 +3,10 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import catRings from "@/assets/cat-rings.jpg";
-import { signUp } from "@/lib/auth";
+import { requestPhoneCode, signUp, verifyPhoneCode } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n/context";
+
+const NESHAN_URL = "https://nshn.ir/43_b1B-UGJVSbV";
 
 export const Route = createFileRoute("/signup")({
   component: SignupPage,
@@ -16,26 +18,69 @@ function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [phoneCode, setPhoneCode] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [phoneSuccess, setPhoneSuccess] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
     setSuccess("");
 
-    if (!name.trim() || !email.trim() || !password.trim()) {
+    if (!phoneVerified) {
+      setError("ابتدا شماره موبایل خود را تایید کنید.");
+      return;
+    }
+
+    if (!name.trim()) {
       setError(t("auth.signup.errorRequired"));
       return;
     }
 
     try {
-      signUp({ name: name.trim(), email: email.trim(), password });
+      signUp({
+        name: name.trim(),
+        email: email.trim() || undefined,
+        password: password.trim() || undefined,
+        phone,
+      });
       setSuccess(t("auth.signup.successCreated"));
-      setTimeout(() => navigate({ to: "/login" }), 800);
+      setTimeout(() => navigate({ to: "/" }), 800);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("auth.signup.errorGeneric"));
     }
+  };
+
+  const handleSendCode = () => {
+    setPhoneError("");
+    setPhoneSuccess("");
+    try {
+      const result = requestPhoneCode(phone);
+      setCodeSent(true);
+      setPhoneSuccess(`کد تایید برای تست: ${result.code}`);
+    } catch (err) {
+      setPhoneError(err instanceof Error ? err.message : "ارسال کد انجام نشد.");
+    }
+  };
+
+  const handlePhoneEntry = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setPhoneError("");
+    setPhoneSuccess("");
+
+    const verified = verifyPhoneCode(phone, phoneCode);
+    if (!verified) {
+      setPhoneError("کد واردشده درست نیست.");
+      return;
+    }
+
+    setPhoneVerified(true);
+    setPhoneSuccess("شماره موبایل تایید شد. حالا اطلاعات حساب را کامل کنید.");
   };
 
   return (
@@ -77,6 +122,54 @@ function SignupPage() {
                   {t("auth.signup.subtitle")}
                 </p>
 
+                <form className="mt-8 space-y-5" onSubmit={handlePhoneEntry}>
+                  <div>
+                    <label className="mb-2 block text-[11px] uppercase tracking-[0.3em] text-onyx/60">
+                      شماره موبایل
+                    </label>
+                    <Input
+                      type="tel"
+                      value={phone}
+                      onChange={(event) => setPhone(event.target.value)}
+                      placeholder="09xxxxxxxxx"
+                      className="h-12 rounded-xl border-onyx/10 bg-white/70 px-4"
+                    />
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                    <div>
+                      <label className="mb-2 block text-[11px] uppercase tracking-[0.3em] text-onyx/60">
+                        کد تایید
+                      </label>
+                      <Input
+                        value={phoneCode}
+                        onChange={(event) => setPhoneCode(event.target.value)}
+                        placeholder="111111"
+                        className="h-12 rounded-xl border-onyx/10 bg-white/70 px-4"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleSendCode}
+                      className="h-12 rounded-xl border-onyx/20 bg-white/70 px-5"
+                    >
+                      دریافت کد
+                    </Button>
+                  </div>
+
+                  {phoneError ? <p className="text-sm text-red-600">{phoneError}</p> : null}
+                  {phoneSuccess ? <p className="text-sm text-emerald-700">{phoneSuccess}</p> : null}
+
+                  <Button
+                    type="submit"
+                    disabled={!codeSent}
+                    className="h-12 w-full rounded-xl bg-gold text-onyx hover:bg-onyx hover:text-parchment disabled:opacity-50"
+                  >
+                    تایید شماره موبایل
+                  </Button>
+                </form>
+
                 <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
                   <div>
                     <label className="mb-2 block text-[11px] uppercase tracking-[0.3em] text-onyx/60">
@@ -86,6 +179,7 @@ function SignupPage() {
                       value={name}
                       onChange={(event) => setName(event.target.value)}
                       placeholder={t("auth.signup.namePlaceholder")}
+                      disabled={!phoneVerified}
                       className="h-12 rounded-xl border-onyx/10 bg-white/70 px-4"
                     />
                   </div>
@@ -98,6 +192,7 @@ function SignupPage() {
                       type="email"
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
+                      disabled={!phoneVerified}
                       placeholder={t("auth.login.emailPlaceholder")}
                       className="h-12 rounded-xl border-onyx/10 bg-white/70 px-4"
                     />
@@ -111,6 +206,7 @@ function SignupPage() {
                       type="password"
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
+                      disabled={!phoneVerified}
                       placeholder={t("auth.signup.passwordPlaceholder")}
                       className="h-12 rounded-xl border-onyx/10 bg-white/70 px-4"
                     />
@@ -119,7 +215,7 @@ function SignupPage() {
                   {error ? <p className="text-sm text-red-600">{error}</p> : null}
                   {success ? <p className="text-sm text-emerald-700">{success}</p> : null}
 
-                  <Button type="submit" className="h-12 w-full rounded-xl bg-onyx text-parchment hover:bg-gold hover:text-onyx">
+                  <Button type="submit" disabled={!phoneVerified} className="h-12 w-full rounded-xl bg-onyx text-parchment hover:bg-gold hover:text-onyx disabled:opacity-50">
                     {t("auth.signup.submit")}
                   </Button>
                 </form>
@@ -132,6 +228,14 @@ function SignupPage() {
                     {t("auth.signup.alreadyJoined")}
                   </Link>
                 </div>
+                <a
+                  href={NESHAN_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-6 block text-center text-sm text-onyx/60 hover:text-gold"
+                >
+                  موقعیت فروشگاه در نشان
+                </a>
               </div>
             </section>
           </div>

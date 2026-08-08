@@ -5,45 +5,20 @@ import { toast } from "sonner";
 import { Shell } from "@/components/site/Chrome";
 import { ProductImage } from "@/components/site/ProductImage";
 import { SHOP_SEARCH_DEFAULT } from "@/lib/shop-search";
-import { products, priceBreakdown, formatToman, GOLD_RATE_PER_GRAM, type Product, type Karat } from "@/lib/products";
+import {
+  allowsMultipleQuantities,
+  productsWithBullion as products,
+  priceBreakdown,
+  formatToman,
+  GOLD_RATE_PER_GRAM,
+  type Product,
+} from "@/lib/products";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { useI18n } from "@/lib/i18n/context";
 import { formatTomanLocalized, tGender } from "@/lib/i18n/helpers";
-
-type Review = {
-  name: string;
-  rating: number;
-  text: string;
-  date: string;
-  verified?: boolean;
-};
-
-function seedReviews(product: Product): Review[] {
-  return [
-    {
-      name: "Alya",
-      rating: product.rating ? Math.round(product.rating) : 5,
-      text: `Beautiful finishing and balanced weight. The ${product.karat} tone looks even better in person.`,
-      date: "Recently",
-      verified: true,
-    },
-    {
-      name: "Reza",
-      rating: 5,
-      text: `The piece matched the photos closely and the live price breakdown made the purchase easy to trust.`,
-      date: "Last week",
-      verified: true,
-    },
-    {
-      name: "Mina",
-      rating: 4,
-      text: `Excellent for gifting. Packaging was clean and the engraving-ready finish is a nice touch.`,
-      date: "2 weeks ago",
-      verified: true,
-    },
-  ];
-}
+import { recordAdminEvent } from "@/lib/admin-events";
+import { createReview, getReviewSummary, type ProductReview } from "@/lib/reviews";
 
 export const Route = createFileRoute("/shop/$id")({
   loader: ({ params }) => {
@@ -90,40 +65,47 @@ function ProductPage() {
   const router = useRouter();
   const [qty, setQty] = useState(1);
   const [active, setActive] = useState(0);
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [reviewName, setReviewName] = useState("");
   const [reviewText, setReviewText] = useState("");
-  const [reviewRating, setReviewRating] = useState(Math.round(product.rating ?? 5));
+  const [reviewRating, setReviewRating] = useState(5);
   const { t, locale } = useI18n();
   const fmt = (n: number) => formatTomanLocalized(n, locale);
   const bd = priceBreakdown(product);
   const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 3);
-  const reviewKey = `aurum-product-reviews-${product.id}`;
+  const multipleAllowed = allowsMultipleQuantities(product);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const raw = window.localStorage.getItem(reviewKey);
-    setReviews(raw ? (JSON.parse(raw) as Review[]) : seedReviews(product));
-  }, [product, reviewKey]);
 
-  useEffect(() => {
-    if (typeof window === "undefined" || reviews.length === 0) return;
-    window.localStorage.setItem(reviewKey, JSON.stringify(reviews));
-  }, [reviewKey, reviews]);
+    const syncReviews = () => {
+      setReviews(getReviewSummary(product.id).reviews);
+    };
+
+    syncReviews();
+    window.addEventListener("aurum-product-reviews-v1:changed", syncReviews);
+    return () => window.removeEventListener("aurum-product-reviews-v1:changed", syncReviews);
+  }, [product.id]);
 
   const averageRating = useMemo(() => {
-    if (reviews.length === 0) return product.rating ?? 0;
+    if (reviews.length === 0) return 0;
     return reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
-  }, [product.rating, reviews]);
+  }, [reviews]);
 
   const shareProduct = async () => {
     const url = window.location.href;
     try {
-      if (navigator.share) {
-        await navigator.share({ title: product.name, text: product.description, url });
-      } else {
-        await navigator.clipboard.writeText(url);
-      }
+      await navigator.clipboard.writeText(url);
+      recordAdminEvent({
+        type: "share_copied",
+        title: "لینک محصول کپی شد",
+        entityType: "product",
+        entityId: product.id,
+        details: {
+          productName: product.name,
+          url,
+        },
+      });
       toast.success(t("product.shareSuccess"));
     } catch {
       toast.error(t("product.shareError"));
@@ -136,15 +118,13 @@ function ProductPage() {
       return;
     }
 
-    const nextReview: Review = {
+    createReview({
+      productId: product.id,
+      productName: product.name,
       name: reviewName.trim(),
       rating: reviewRating,
       text: reviewText.trim(),
-      date: t("product.justNow"),
-      verified: false,
-    };
-
-    setReviews((current) => [nextReview, ...current]);
+    });
     setReviewName("");
     setReviewText("");
     setReviewRating(5);
@@ -233,7 +213,13 @@ function ProductPage() {
             <div className="flex items-center border border-onyx/15">
               <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-10 h-12 hover:bg-onyx/5">−</button>
               <span className="w-10 text-center font-medium">{qty}</span>
-              <button onClick={() => setQty(qty + 1)} className="w-10 h-12 hover:bg-onyx/5">+</button>
+              <button
+                onClick={() => setQty(multipleAllowed ? qty + 1 : 1)}
+                disabled={!multipleAllowed}
+                className="w-10 h-12 hover:bg-onyx/5 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                +
+              </button>
             </div>
             <button
               onClick={() => add(product.id, qty)}
@@ -243,7 +229,7 @@ function ProductPage() {
             </button>
             <button
               onClick={() => {
-                add(product.id, qty);
+                add(product.id, qty); 
                 router.navigate({ to: "/checkout" });
               }}
               className="border-b border-onyx py-2 text-[11px] uppercase tracking-[0.2em] font-bold hover:text-gold hover:border-gold"
@@ -251,6 +237,11 @@ function ProductPage() {
               Buy now
             </button>
           </div>
+          <p className="mt-3 text-xs text-onyx/55">
+            {multipleAllowed
+              ? "امکان خرید این محصول در چند تعداد وجود دارد."
+              : "برای این محصول فقط ۱ عدد قابل خرید است."}
+          </p>
 
           <div className="mt-4 flex flex-wrap gap-3">
             <button
@@ -318,7 +309,11 @@ function ProductPage() {
           </div>
 
           <div className="space-y-4">
-            {reviews.map((review) => (
+            {reviews.length === 0 ? (
+              <div className="rounded-3xl border border-dashed border-onyx/15 bg-white/60 p-6 text-sm text-onyx/55">
+                هنوز نظری برای این محصول ثبت نشده است.
+              </div>
+            ) : reviews.map((review) => (
               <article key={`${review.name}-${review.date}-${review.text.slice(0, 12)}`} className="rounded-3xl border border-onyx/10 bg-white/70 p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div>

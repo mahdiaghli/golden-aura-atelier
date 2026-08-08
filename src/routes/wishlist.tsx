@@ -3,7 +3,7 @@ import { Heart, ShoppingBag, Trash2 } from "lucide-react";
 import { Shell } from "@/components/site/Chrome";
 import { ProductImage } from "@/components/site/ProductImage";
 import { useWishlist } from "@/lib/wishlist";
-import { priceBreakdown, products } from "@/lib/products";
+import { priceBreakdown, productsWithBullion as products } from "@/lib/products";
 import { useI18n } from "@/lib/i18n/context";
 import { formatTomanLocalized } from "@/lib/i18n/helpers";
 

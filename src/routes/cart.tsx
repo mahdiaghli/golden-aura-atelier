@@ -8,10 +8,10 @@ import { formatTomanLocalized } from "@/lib/i18n/helpers";
 export const Route = createFileRoute("/cart")({
   head: () => ({
     meta: [
-      { title: "Your Bag — Aurum" },
-      { name: "description", content: "Review the pieces reserved in your Aurum bag before checkout." },
-      { property: "og:title", content: "Your Bag — Aurum" },
-      { property: "og:description", content: "Review your reserved Aurum pieces." },
+      { title: "Your Bag — طلاجات عقلی" },
+      { name: "description", content: "Review the pieces reserved in your طلاجات عقلی bag before checkout." },
+      { property: "og:title", content: "Your Bag — طلاجات عقلی" },
+      { property: "og:description", content: "Review your reserved طلاجات عقلی pieces." },
       { name: "robots", content: "noindex" },
     ],
   }),

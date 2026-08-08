@@ -1,5 +1,10 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { products, priceBreakdown, type Product } from "./products";
+import {
+  allowsMultipleQuantities,
+  productsWithBullion as products,
+  priceBreakdown,
+  type Product,
+} from "./products";
 
 type CartItem = { id: string; qty: number };
 const KEY = "aurum-cart-v1";
@@ -63,9 +68,11 @@ export function useCart() {
     count,
     subtotal,
     add(id: string, qty = 1) {
+      const product = products.find((entry) => entry.id === id);
+      const maxQty = product && !allowsMultipleQuantities(product) ? 1 : Number.MAX_SAFE_INTEGER;
       const existing = state.find((i) => i.id === id);
-      if (existing) existing.qty += qty;
-      else state = [...state, { id, qty }];
+      if (existing) existing.qty = Math.min(maxQty, existing.qty + qty);
+      else state = [...state, { id, qty: Math.min(maxQty, Math.max(1, qty)) }];
       persist();
     },
     remove(id: string) {
@@ -73,8 +80,10 @@ export function useCart() {
       persist();
     },
     setQty(id: string, qty: number) {
+      const product = products.find((entry) => entry.id === id);
+      const maxQty = product && !allowsMultipleQuantities(product) ? 1 : Number.MAX_SAFE_INTEGER;
       state = state
-        .map((i) => (i.id === id ? { ...i, qty: Math.max(1, qty) } : i))
+        .map((i) => (i.id === id ? { ...i, qty: Math.min(maxQty, Math.max(1, qty)) } : i))
         .filter((i) => i.qty > 0);
       persist();
     },

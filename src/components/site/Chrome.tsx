@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronDown, Heart, Instagram, MapPin, Menu, Phone, Search, Send, ShoppingBag, X } from "lucide-react";
+import { ChevronDown, Heart, Instagram,Clock, MapPin, Menu, Phone, Search, Send, ShoppingBag, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/lib/cart";
 import { useI18n } from "@/lib/i18n/context";
@@ -10,11 +10,30 @@ import { useLiveGold } from "@/lib/live-gold";
 import { getSessionUser, isAdmin, type AuthUser } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
 
-const NESHAN_URL =
-  "https://neshan.org/maps/?q=%D9%85%D8%B4%D9%87%D8%AF%20%D8%A8%DB%8C%D9%86%20%D8%AD%D8%B1%207%20%D9%88%209%20%D8%AC%D9%86%D8%A8%20%D8%AF%D8%B1%D9%85%D8%A7%D9%86%DA%AF%D8%A7%D9%87%20%D8%B3%D9%85%D8%A7%20%D8%B7%D9%84%D8%A7%D8%AC%D8%A7%D8%AA%20%D8%B9%D9%82%D9%84%DB%8C";
+const NESHAN_URL = "https://neshan.org/maps/places/43be0ea8a81fc6111e4c1a7078331a10";
+// const GOOGLE_MAPS_EMBED =
+//   "https://maps.google.com/maps?q=مشهد+شهرک+شهید+رجایی+بین+حر+۷+و+۹+جنب+درمانگاه+سما+طلاجات+عقلی&t=&z=17&ie=UTF8&iwloc=&output=embed";
 
+  const GOOGLE_MAPS_LINK = "https://maps.app.goo.gl/ZEstCTe9VJWXRuw39";
+
+// این لینک Embed رو بعداً با روش پایین جایگزین کن
+// const GOOGLE_MAPS_EMBED =
+//   "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3200!2d59.55!3d36.30!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzbCsDE4JzAwLjAiTiA1OcKwMzMnMDAuMCJF!5e0!3m2!1sen!2s!4v1710000000000!5m2!1sen!2s";
+
+  const GOOGLE_MAPS_EMBED =
+    "https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d233.51773956567547!2d59.66993615928196!3d36.264903061549546!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sde!4v1786179551158!5m2!1sen!2sde";
+// ;
 function buildShopSearch(item: string) {
-  const categoryMap: Record<string, "rings" | "necklaces" | "bracelets" | "bullion"> = {
+  const categoryMap: Record<string, "rings" | "necklaces" | "bracelets" | "earrings" | "bullion"> = {
+    Shop: "bullion",
+    النگو: "bracelets",
+    "تک پوش": "bracelets",
+    دستبند: "bracelets",
+    زنجیر: "necklaces",
+    گردنبند: "necklaces",
+    پلاک: "necklaces",
+    انگشتر: "rings",
+    گوشواره: "earrings",
     Ring: "rings",
     "Wedding Ring": "rings",
     "Engagement Ring": "rings",
@@ -22,13 +41,38 @@ function buildShopSearch(item: string) {
     Chain: "necklaces",
     Bracelet: "bracelets",
     Pendant: "necklaces",
-    Earrings: "bracelets",
+    Earrings: "earrings",
     "Bullion / Bar": "bullion",
     Coin: "bullion",
+    پارسیان: "bullion",
+    شمش: "bullion",
+    "بهار آزادی": "bullion",
+    نیم: "bullion",
+    ربع: "bullion",
+    "گوی طلا": "bullion",
+  };
+
+  const queryMap: Record<string, string> = {
+    النگو: "Bangle",
+    "تک پوش": "Bangle",
+    دستبند: "Bracelet",
+    زنجیر: "Chain",
+    گردنبند: "Necklace",
+    پلاک: "Pendant",
+    انگشتر: "Ring",
+    گوشواره: "Earrings",
+    پارسیان: "پارسیان",
+    شمش: "شمش",
+    "بهار آزادی": "بهار آزادی",
+    نیم: "نیم",
+    ربع: "ربع",
+    "گوی طلا": "گوی طلا",
   };
 
   const category = categoryMap[item];
-  return category ? { ...SHOP_SEARCH_DEFAULT, category } : { ...SHOP_SEARCH_DEFAULT, q: item };
+  const q = queryMap[item];
+  if (category && q) return { ...SHOP_SEARCH_DEFAULT, category, q };
+  return category ? { ...SHOP_SEARCH_DEFAULT, category } : { ...SHOP_SEARCH_DEFAULT, q: q ?? item };
 }
 
 export function Ticker() {
@@ -99,37 +143,81 @@ export function Nav() {
 
   const megaMenu = useMemo(
     () => [
-      { label: t("nav.mega.products"), links: ["Ring", "Wedding Ring", "Engagement Ring", "Necklace", "Chain", "Bracelet", "Pendant", "Earrings"] },
+      // { label: t("nav.mega.products"), links: ["همه محصولات", "انگشتر", "گردنبند", "زنجیر", "دستبند", "النگو", "تک پوش", "پلاک", "گوشواره"] },
+      // // { label: t("nav.mega.gemstones"), links: [t("nav.mega.diamond"), t("nav.mega.ruby"), t("nav.mega.emerald"), t("nav.mega.sapphire"), t("nav.mega.pearl"), t("nav.mega.topaz"), t("nav.mega.amethyst")] },
+      // { label: t("nav.mega.investment"), links: ["صفحه سرمایه گذاری", "سکه پارسیان", "کیف پول", "شمش", "گوی طلا (اقتصادی)", "سکه بهار آزادی، نیم، ربع"] },
+      // { label: t("nav.mega.gifts"), links: [t("nav.mega.birthdayGift"), t("nav.mega.anniversaryGift"), t("nav.mega.weddingGift"), t("nav.mega.graduationGift")] },
+      // { label: t("nav.mega.wedding"), links: ["Ring", t("nav.mega.bridalSet"), t("nav.mega.couplesSet")] },
+      // { label: t("nav.services"), links: ["خدمات ما", "آیینه جادویی (جدید)", "سفارش محصول", "قیمت روز طلا"] },
+      // { label: t("nav.mega.resources"), links: [t("nav.mega.buyingGuide"), t("nav.mega.blog"), t("nav.mega.faq")] },
+      // { label: t("nav.contact"), links: ["Contact us"] },
+
+      
+      { label: t("nav.mega.products"), links: ["Shop", "انگشتر", "گردنبند", "زنجیر", "دستبند", "النگو", "تک پوش", "پلاک", "گوشواره"] },
       // { label: t("nav.mega.gemstones"), links: [t("nav.mega.diamond"), t("nav.mega.ruby"), t("nav.mega.emerald"), t("nav.mega.sapphire"), t("nav.mega.pearl"), t("nav.mega.topaz"), t("nav.mega.amethyst")] },
-      { label: t("nav.mega.investment"), links: ["Bullion / Bar", "Coin", t("nav.mega.meltedGold"), t("nav.mega.secondHandGold")] },
+      { label: t("nav.mega.investment"), links: ["Investment", "Wallet", "پارسیان", "شمش", "بهار آزادی", "نیم", "ربع", "گوی طلا"] },
       { label: t("nav.mega.gifts"), links: [t("nav.mega.birthdayGift"), t("nav.mega.anniversaryGift"), t("nav.mega.weddingGift"), t("nav.mega.graduationGift")] },
       { label: t("nav.mega.wedding"), links: ["Ring", t("nav.mega.bridalSet"), t("nav.mega.couplesSet")] },
-      { label: t("nav.services"), links: serviceAnchors.map((item) => item.label) },
+      { label: t("nav.services"), links: ["Services", "Try on", "Custom", "Market"] },
+      { label: t("nav.contact"), links: ["Contact us"] },
       { label: t("nav.mega.resources"), links: [t("nav.mega.buyingGuide"), t("nav.mega.blog"), t("nav.mega.faq")] },
     ],
-    [serviceAnchors, t],
+    [t],
   );
+
+  const resolveMegaLink = (menuLabel: string, item: string) => {
+    if (menuLabel === t("nav.contact")) {
+      return { to: "/contact" as const, search: undefined };
+    }
+
+    if (menuLabel === t("nav.services")) {
+      if (item === "Try on") return { to: "/try-on" as const, search: undefined };
+      if (item === "Custom") return { to: "/custom" as const, search: undefined };
+      if (item === "Market") return { to: "/prices" as const, search: undefined };
+      return { to: "/services" as const, search: undefined };
+    }
+
+    if (menuLabel === t("nav.mega.investment")) {
+      if (item === "Investment") return { to: "/investment" as const, search: undefined };
+      if (item === "Wallet") return { to: "/wallet" as const, search: undefined };
+      return { to: "/shop" as const, search: buildShopSearch(item) };
+    }
+
+    if (menuLabel === t("nav.mega.products") && item === "Shop") {
+      return { to: "/shop" as const, search: undefined };
+    }
+
+    if (menuLabel === t("nav.mega.resources")) {
+      if (item === t("nav.mega.blog")) return { to: "/blog" as const, search: undefined };
+      if (item === t("nav.mega.faq")) return { to: "/faq" as const, search: undefined };
+      if (item === t("nav.mega.buyingGuide")) {
+        return { to: "/shop" as const, search: { ...SHOP_SEARCH_DEFAULT, q: item } };
+      }
+    }
+
+    return { to: "/shop" as const, search: buildShopSearch(item) };
+  };
 
   return (
     <nav className="sticky top-0 z-50 border-b border-onyx/10 bg-parchment/95 backdrop-blur-md" onMouseLeave={() => setOpen(null)}>
       <div className="hidden border-b border-onyx/8 bg-white/55 lg:block">
         <div className="mx-auto flex h-10 max-w-7xl items-center justify-between px-6 text-[10px] uppercase tracking-[0.22em] text-onyx/55">
           <div className="flex items-center gap-5">
-            <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="hover:text-gold">Shop</Link>
+            {/* <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="hover:text-gold">Shop</Link> */}
             {/* <Link to="/shop" search={{ ...SHOP_SEARCH_DEFAULT, stock: "made-to-order" }} className="hover:text-gold">Engraving</Link> */}
-            <Link to="/prices" className="hover:text-gold">Market</Link>
+            {/* <Link to="/prices" className="hover:text-gold">Market</Link>
             <Link to="/custom" className="hover:text-gold">custom</Link>
             <Link to="/try-on" className="hover:text-gold">Try on</Link>
             <Link to="/wallet" className="hover:text-gold">wallet</Link>
               <Link to="/investment" className="hover:text-gold">investment</Link>
 
-            <Link to="/services" className="hover:text-gold">Services</Link>
+            <Link to="/services" className="hover:text-gold">Services</Link> */}
             {admin && (
-              <Link to="/admin" className="font-bold text-gold hover:text-onyx">Admin panel</Link>
+              <Link to="/admin" className="font-bold text-gold hover:text-onyx">پنل ادمین</Link>
             )}
           </div>
           <div className="flex items-center gap-5">
-            <a href="tel:09153145726" className="hover:text-gold">0915 314 5726</a>
+            <a href="tel:09153145726" className="hover:text-gold">09153145726</a>
             <a href="https://t.me/aghligold" target="_blank" rel="noreferrer" className="hover:text-gold">Telegram</a>
           </div>
         </div>
@@ -205,26 +293,8 @@ export function Nav() {
             {menu.links.map((item) => (
               <li key={item}>
                 <Link
-                  to={
-                    menu.label === t("nav.services")
-                      ? "/services"
-                      : menu.label === t("nav.mega.resources")
-                        ? item === t("nav.mega.blog")
-                          ? "/blog"
-                          : item === t("nav.mega.faq")
-                            ? "/faq"
-                            : "/shop"
-                        : "/shop"
-                  }
-                  search={
-                    menu.label === t("nav.mega.resources")
-                      ? item === t("nav.mega.buyingGuide")
-                        ? { ...SHOP_SEARCH_DEFAULT, q: item }
-                        : undefined
-                      : menu.label === t("nav.services")
-                        ? undefined
-                        : buildShopSearch(item)
-                  }
+                  to={resolveMegaLink(menu.label, item).to}
+                  search={resolveMegaLink(menu.label, item).search}
                   className="group flex items-center gap-2 text-[15px] font-light 
                              text-onyx/75 transition-all duration-200 
                              hover:text-gold hover:translate-x-1"
@@ -298,78 +368,195 @@ export function Nav() {
     </nav>
   );
 }
-
 function StoreMap({ compact = false }: { compact?: boolean }) {
   const { t } = useI18n();
 
   return (
-    <div className={`overflow-hidden border border-onyx/10 bg-white/70 ${compact ? "rounded-[1.5rem]" : "rounded-[2rem]"}`}>
+    <div
+      className={`overflow-hidden border border-onyx/10 bg-white/70 ${
+        compact ? "rounded-[1.5rem]" : "rounded-[2rem]"
+      }`}
+    >
       <div className="border-b border-onyx/10 px-5 py-4">
-        <p className="text-[10px] uppercase tracking-[0.24em] text-onyx/45">{t("footer.locationEyebrow")}</p>
+        <p className="text-[10px] uppercase tracking-[0.24em] text-onyx/45">
+          {t("footer.locationEyebrow")}
+        </p>
         <p className="mt-2 font-serif text-xl">{t("footer.locationTitle")}</p>
       </div>
+
       <div className={compact ? "h-[260px]" : "h-[360px]"}>
-        <iframe title={t("footer.mapTitle")} src={NESHAN_URL} className="h-full w-full" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+        <iframe
+          title={t("footer.mapTitle")}
+          src={GOOGLE_MAPS_EMBED}
+          className="h-full w-full border-0"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          allowFullScreen
+        />
       </div>
     </div>
   );
 }
-
 export function Footer() {
   const { t } = useI18n();
 
   return (
     <footer className="border-t border-onyx/10 bg-parchment pb-10 pt-16">
-      <div className="mx-auto max-w-7xl px-6">
-        <div className="mb-16 grid gap-12 lg:grid-cols-[1.05fr_.9fr_.8fr_.85fr_1.25fr]">
+      <div className="mx-auto max-w-7xl px-4">
+        <div className="mb-16 grid gap-12 lg:grid-cols-[1.15fr_1fr_1fr_1.35fr]">
+          
+          {/* Brand + Social */}
           <div>
             <h2 className="font-serif text-4xl tracking-tighter">
               AGHLI<span className="text-gold">.</span>
             </h2>
-            <p className="mt-5 max-w-xs text-sm leading-relaxed text-onyx/60">{t("footer.tagline")}</p>
-            <div className="mt-6 flex gap-4 text-onyx/60">
-              <a aria-label={t("footer.ariaTelegram")} href="https://t.me/aghligold" target="_blank" rel="noreferrer" className="hover:text-gold">
+            <p className="mt-5 max-w-xs text-sm leading-relaxed text-onyx/60 whitespace-pre-line">
+  {t("footer.tagline")}
+</p>
+
+            <div className="mt-7 flex items-center gap-5 text-onyx/55">
+              <a
+                aria-label={t("footer.ariaTelegram")}
+                href="https://t.me/aghligold"
+                target="_blank"
+                rel="noreferrer"
+                className="transition-colors hover:text-gold"
+              >
                 <Send size={18} />
               </a>
-              <a aria-label={t("footer.ariaInstagram")} href="https://instagram.com/aghligold/" target="_blank" rel="noreferrer" className="hover:text-gold">
+              <a
+                aria-label={t("footer.ariaInstagram")}
+                href="https://instagram.com/aghligold/"
+                target="_blank"
+                rel="noreferrer"
+                className="transition-colors hover:text-gold"
+              >
                 <Instagram size={18} />
+              </a>
+              <a
+                aria-label="روبیکا"
+                href="https://rubika.ir/aghligold"
+                target="_blank"
+                rel="noreferrer"
+                className="text-[13px] font-medium tracking-wide transition-colors hover:text-gold"
+              >
+                روبیکا
               </a>
             </div>
           </div>
 
+          {/* Contact */}
           <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-widest">{t("footer.contactTitle")}</h3>
-            <div className="mt-5 space-y-3 text-sm text-onyx/60">
-              <a className="flex gap-2 hover:text-gold" href="tel:09153145726"><Phone size={15} />09153145726</a>
-              <a className="flex gap-2 hover:text-gold" href="tel:05133762430"><Phone size={15} />05133762430</a>
-              <a className="flex gap-2 hover:text-gold" href="https://t.me/aaadmin_aghli" target="_blank" rel="noreferrer"><Send size={15} />@aaadmin_aghli</a>
-              <a className="flex gap-2 hover:text-gold" href={NESHAN_URL} target="_blank" rel="noreferrer"><MapPin size={15} />{t("footer.openMap")}</a>
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-onyx/80">
+              {t("footer.contactTitle")}
+            </h3>
+            <div className="mt-6 space-y-4 text-sm text-onyx/65">
+              <a
+                href="tel:05133762430"
+                className="group flex items-start gap-3 transition-colors hover:text-gold"
+              >
+                <Phone size={16} className="mt-0.5 shrink-0 opacity-70 group-hover:opacity-100" />
+                <div>
+                  <div className="text-[11px] text-onyx/45">تلفن ثابت</div>
+                  <div className="font-medium tracking-wide">۰۵۱۳۳۷۶۲۴۳۰</div>
+                </div>
+              </a>
+
+              <a
+                href="tel:09153145726"
+                className="group flex items-start gap-3 transition-colors hover:text-gold"
+              >
+                <Phone size={16} className="mt-0.5 shrink-0 opacity-70 group-hover:opacity-100" />
+                <div>
+                  <div className="text-[11px] text-onyx/45">سفارش و واتساپ</div>
+                  <div className="font-medium tracking-wide">۰۹۱۵۳۱۴۵۷۲۶</div>
+                </div>
+              </a>
+
+              <a
+                href="https://t.me/aadmin_aghli"
+                target="_blank"
+                rel="noreferrer"
+                className="group flex items-start gap-3 transition-colors hover:text-gold"
+              >
+                <Send size={16} className="mt-0.5 shrink-0 opacity-70 group-hover:opacity-100" />
+                <div>
+                  <div className="text-[11px] text-onyx/45">تلگرام ادمین</div>
+                  <div className="font-medium">@aadmin_aghli</div>
+                </div>
+              </a>
             </div>
           </div>
 
+          {/* Address + Hours */}
           <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-widest">{t("footer.exploreTitle")}</h3>
-            <div className="mt-5 space-y-3 text-sm text-onyx/60">
-              <Link to="/shop" search={SHOP_SEARCH_DEFAULT} className="block hover:text-gold">{t("footer.exploreShop")}</Link>
-              <Link to="/prices" className="block hover:text-gold">{t("footer.exploreMarketPrices")}</Link>
-              <Link to="/contact" className="block hover:text-gold">{t("nav.contact")}</Link>
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-onyx/80">
+              آدرس و ساعات کاری
+            </h3>
+
+            <div className="mt-6 space-y-5 text-sm text-onyx/65">
+              <div className="flex items-start gap-3">
+                <MapPin size={16} className="mt-0.5 shrink-0 opacity-70" />
+                <div className="leading-relaxed">
+                  <p>مشهد، شهرک شهید رجایی، بین حر۷و ۹</p>
+                  <p className="text-onyx/50">جنب درمانگاه سما</p>
+                    <a
+  href={GOOGLE_MAPS_LINK}
+  target="_blank"
+  rel="noreferrer"
+  className="mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium text-gold hover:underline"
+>
+  مشاهده روی نقشه
+  <span className="text-[10px]">↗</span>
+</a>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <Clock size={16} className="mt-0.5 shrink-0 opacity-70" />
+                <div className="space-y-1.5 leading-relaxed">
+                  <div>
+                    <span className="text-[11px] text-onyx/45">شنبه تا پنج‌شنبه</span>
+                    <p>۹:۰۰ – ۱۳:۳۰ و ۱۶:۰۰ – ۲۱:۰۰</p>
+                  </div>
+                  <div className="pt-1">
+                    <span className="text-[11px] text-onyx/45">ماه رمضان</span>
+                    <p>۹:۰۰ تا نیم ساعت قبل از اذان مغرب</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="lg:col-span-2">
+          {/* Map */}
+          <div className="lg:pl-4">
             <StoreMap compact />
           </div>
         </div>
 
+        {/* Bottom Bar */}
         <div className="flex flex-col gap-4 border-t border-onyx/10 pt-6 text-xs text-onyx/50 sm:flex-row sm:items-center sm:justify-between">
-          <p>© AGHLI. {t("footer.copyright")}.</p>
-          <LanguageSwitcher />
+          <p>© AGHLI. {t("footer.copyright")}</p>
+          <div className="flex items-center gap-6">
+            <Link
+              to="/shop"
+              search={SHOP_SEARCH_DEFAULT}
+              className="transition-colors hover:text-gold"
+            >
+              {t("footer.exploreShop")}
+            </Link>
+            <Link to="/prices" className="transition-colors hover:text-gold">
+              {t("footer.exploreMarketPrices")}
+            </Link>
+            <Link to="/contact" className="transition-colors hover:text-gold">
+              {t("nav.contact")}
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
   );
 }
-
 export function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-parchment text-onyx">

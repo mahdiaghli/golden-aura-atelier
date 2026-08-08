@@ -1,5 +1,6 @@
 import catalog from "@/data/catalog.json";
 import imageMap from "@/data/product-image-map.json";
+import rawCoins from "../../coins.json";
 
 export type Karat = "18K" | "21K" | "22K" | "24K";
 export type Category = "rings" | "necklaces" | "bracelets" | "earrings" | "sets" | "bullion";
@@ -77,6 +78,24 @@ export function formatToman(n: number) {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(n)) + " T";
 }
 
+export function allowsMultipleQuantities(product: Product): boolean {
+  if (product.category === "bracelets" || product.category === "bullion") {
+    return true;
+  }
+
+  const haystack = `${product.name} ${product.typeLabel ?? ""} ${product.sku}`.toLowerCase();
+  return (
+    haystack.includes("coin") ||
+    haystack.includes("bar") ||
+    haystack.includes("bullion") ||
+    haystack.includes("ball") ||
+    haystack.includes("شمش") ||
+    haystack.includes("سکه") ||
+    haystack.includes("پارسیان") ||
+    haystack.includes("گوی طلا")
+  );
+}
+
 
 type CatalogRow = {
   id: string;
@@ -91,6 +110,13 @@ type CatalogRow = {
   typeLabel: string;
   size?: string;
   imageName?: string;
+};
+
+type CoinRow = {
+  "کد": string;
+  "وزن": string;
+  "نوع": string;
+  "عکس محصول": string | null;
 };
 
 export const PRODUCT_IMAGE_DIR = "/product-images";
@@ -211,6 +237,132 @@ export const products: Product[] = (catalog as CatalogRow[]).map((row) => {
   };
 });
 
+function parseCoinWeight(raw: string) {
+  return Number(String(raw).replace("/", "."));
+}
+
+function buildBullionProduct(input: {
+  id: string;
+  name: string;
+  sku: string;
+  weight: number;
+  karat?: Karat;
+  typeLabel: string;
+  description?: string;
+}) {
+  const karat = input.karat ?? "24K";
+  return {
+    id: input.id,
+    name: input.name,
+    category: "bullion" as const,
+    karat,
+    weight: input.weight,
+    makingPct: karat === "22K" ? 0.015 : 0.01,
+    gender: "unisex" as const,
+    gemstoneType: "none" as const,
+    color: "yellow" as const,
+    style: "classic" as const,
+    occasion: "investment" as const,
+    image: "",
+    gallery: [],
+    description:
+      input.description ??
+      `${input.typeLabel} ${input.weight} گرمی با عیار ${karat} برای خرید و نگهداری سرمایه‌ای.`,
+    sku: input.sku,
+    inStock: true,
+    customizable: false,
+    madeToOrder: false,
+    returnable: true,
+    sizeAdjustable: false,
+    warranty: "Certificate of authenticity",
+    rating: 4.8,
+    reviews: 12,
+    bestseller: input.weight >= 1,
+    newest: false,
+    mostSold: input.weight <= 1,
+    aiRecommended: input.weight === 1,
+    freeShipping: input.weight >= 2,
+    onSale: false,
+    code: input.sku,
+    typeLabel: input.typeLabel,
+  } satisfies Product;
+}
+
+const coinProducts: Product[] = (rawCoins as CoinRow[]).map((row) =>
+  buildBullionProduct({
+    id: `bullion-${row["کد"].toLowerCase()}`,
+    name: `${row["نوع"]} ${parseCoinWeight(row["وزن"])} گرمی`,
+    sku: row["کد"],
+    weight: parseCoinWeight(row["وزن"]),
+    typeLabel: row["نوع"],
+  }),
+);
+
+const classicCoinProducts: Product[] = [
+  buildBullionProduct({
+    id: "coin-bahar-azadi",
+    name: "سکه بهار آزادی",
+    sku: "COIN-BAHAR-AZADI",
+    weight: 8.133,
+    karat: "22K",
+    typeLabel: "Coin",
+  }),
+  buildBullionProduct({
+    id: "coin-nim-bahar-azadi",
+    name: "نیم سکه بهار آزادی",
+    sku: "COIN-NIM-BAHAR-AZADI",
+    weight: 4.066,
+    karat: "22K",
+    typeLabel: "Coin",
+  }),
+  buildBullionProduct({
+    id: "coin-rob-bahar-azadi",
+    name: "ربع سکه بهار آزادی",
+    sku: "COIN-ROB-BAHAR-AZADI",
+    weight: 2.033,
+    karat: "22K",
+    typeLabel: "Coin",
+  }),
+];
+
+const goldBallProducts: Product[] = [
+  buildBullionProduct({
+    id: "gold-ball-0-5",
+    name: "گوی طلا ۰.۵ گرمی",
+    sku: "BALL-0.5G",
+    weight: 0.5,
+    karat: "24K",
+    typeLabel: "گوی طلا",
+  }),
+  buildBullionProduct({
+    id: "gold-ball-1",
+    name: "گوی طلا ۱ گرمی",
+    sku: "BALL-1G",
+    weight: 1,
+    karat: "24K",
+    typeLabel: "گوی طلا",
+  }),
+  buildBullionProduct({
+    id: "gold-ball-2-5",
+    name: "گوی طلا ۲.۵ گرمی",
+    sku: "BALL-2.5G",
+    weight: 2.5,
+    karat: "24K",
+    typeLabel: "گوی طلا",
+  }),
+  buildBullionProduct({
+    id: "gold-ball-5",
+    name: "گوی طلا ۵ گرمی",
+    sku: "BALL-5G",
+    weight: 5,
+    karat: "24K",
+    typeLabel: "گوی طلا",
+  }),
+];
+
+export const investmentProducts: Product[] = [...coinProducts, ...classicCoinProducts, ...goldBallProducts];
+export const productsWithBullion: Product[] = [...products, ...investmentProducts];
+
 export type QuickTag =
   | "all"
   | "kids"
@@ -295,4 +447,5 @@ export const categories: { slug: Category | "all"; label: string }[] = [
   { slug: "bracelets", label: "Bracelets & Bangles" },
   { slug: "earrings", label: "Earrings" },
   { slug: "sets", label: "Sets" },
+  { slug: "bullion", label: "Investment & Coins" },
 ];

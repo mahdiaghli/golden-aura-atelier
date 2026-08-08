@@ -92,7 +92,7 @@ function Home() {
         <div className="absolute inset-0 bg-gradient-to-t from-parchment via-parchment/10 to-transparent" />
         <div className="relative mx-auto flex min-h-[660px] max-w-7xl items-center px-6">
           <div className="max-w-2xl animate-fade-up">
-            <p className="text-[11px] uppercase tracking-[.38em] text-gold">{t("home.heroEyebrow")}</p>
+            <p className="text-[11px] uppercase tracking-[.38em] text-gray">{t("home.heroEyebrow")}</p>
             <h1 className="mt-5 text-3xl md:text-5xl font-semibold leading-[1.35] tracking-tight">{t("home.heroTitle")}</h1>
             <p className="mt-7 max-w-lg text-base leading-relaxed text-onyx/70">{t("home.heroSubtitle")}</p>
             <div className="mt-9 flex flex-wrap gap-4">

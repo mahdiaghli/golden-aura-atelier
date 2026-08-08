@@ -1,4 +1,5 @@
 import type { Product } from "./products";
+import { recordAdminEvent } from "./admin-events";
 
 export type OrderItem = {
   id: string;
@@ -43,6 +44,7 @@ function loadOrdersFromStorage(): Order[] {
 function saveOrdersToStorage(orders: Order[]) {
   if (typeof window !== "undefined") {
     window.localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+    window.dispatchEvent(new CustomEvent(`${ORDERS_KEY}:changed`));
   }
 }
 
@@ -73,9 +75,51 @@ export function createOrder(payload: {
 
   const orders = [order, ...loadOrdersFromStorage()];
   saveOrdersToStorage(orders);
+  recordAdminEvent({
+    type: "order_created",
+    title: "سفارش جدید ثبت شد",
+    entityType: "order",
+    entityId: order.id,
+    amount: order.total,
+    details: {
+      customer: order.customer.name,
+      phone: order.customer.phone,
+      itemCount: order.items.reduce((sum, item) => sum + item.quantity, 0),
+    },
+  });
+  recordAdminEvent({
+    type: "order_created",
+    title: "سود سفارش ثبت شد",
+    entityType: "transaction",
+    entityId: order.id,
+    amount: order.total,
+    profit: Math.round(order.items.reduce((sum, item) => sum + item.price * 0.07, 0)),
+    details: {
+      customer: order.customer.name,
+    },
+  });
   return order;
 }
 
 export function getOrders(): Order[] {
   return loadOrdersFromStorage();
+}
+
+export function updateOrderStatus(orderId: string, status: Order["status"]): void {
+  const current = loadOrdersFromStorage().find((order) => order.id === orderId);
+  const nextOrders = loadOrdersFromStorage().map((order) =>
+    order.id === orderId ? { ...order, status } : order,
+  );
+  saveOrdersToStorage(nextOrders);
+  recordAdminEvent({
+    type: "order_status_updated",
+    title: "وضعیت سفارش تغییر کرد",
+    entityType: status === "In transit" || status === "Delivered" ? "shipment" : "order",
+    entityId: orderId,
+    status,
+    amount: current?.total,
+    details: {
+      customer: current?.customer.name ?? "",
+    },
+  });
 }

@@ -25,7 +25,7 @@ export function ProductImage({ product, className, loading = "lazy" }: Props) {
         role="img"
         aria-label={`${product.name} — photo coming soon`}
       >
-        <span className="font-serif text-2xl tracking-[0.3em] text-gold/70">AURUM</span>
+        <span className="font-serif text-2xl tracking-[0.12em] text-gold/70">طلاجات عقلی</span>
         <span className="text-[9px] uppercase tracking-[0.25em] text-onyx/40">
           {product.typeLabel || "Piece"}
         </span>

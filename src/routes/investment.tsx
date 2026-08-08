@@ -2,10 +2,12 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/site/Chrome";
+import { ProductImage } from "@/components/site/ProductImage";
 import { useLiveGold } from "@/lib/live-gold";
 import { createGoldOrder, goldHoldings, type GoldOrder } from "@/lib/requests";
 import { getSessionUser } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n/context";
+import { investmentProducts, priceBreakdown, type Product } from "@/lib/products";
 
 export const Route = createFileRoute("/investment")({
   head: () => ({
@@ -30,13 +32,6 @@ const fmtDec = (n: number, d = 4) =>
     maximumFractionDigits: d,
   }).format(n);
 
-const GOLD_BALLS = [
-  { id: "g-0.5", weight_grams: 0.5, karat: "24K", premium_pct: 3, image_url: null as string | null },
-  { id: "g-1", weight_grams: 1, karat: "24K", premium_pct: 2.5, image_url: null },
-  { id: "g-2.5", weight_grams: 2.5, karat: "24K", premium_pct: 2, image_url: null },
-  { id: "g-5", weight_grams: 5, karat: "24K", premium_pct: 1.8, image_url: null },
-];
-
 const AMOUNT_PRESETS = [1_000_000, 2_000_000, 5_000_000, 10_000_000, 25_000_000, 50_000_000];
 
 type ChartRange = "1d" | "1w" | "1m" | "3m" | "1y" | "all";
@@ -57,7 +52,7 @@ function CatalogPage() {
   }, []);
 
   const [mainTab, setMainTab] = useState<"product" | "amount" | "dashboard">("amount");
-  const [selected, setSelected] = useState<string | null>(GOLD_BALLS[0]?.id ?? null);
+  const [selected, setSelected] = useState<string | null>(investmentProducts[0]?.id ?? null);
   const [quantity, setQuantity] = useState(1);
   const [amount, setAmount] = useState(5_000_000);
   const [delivery, setDelivery] = useState<"vault" | "shipping">("vault");
@@ -67,13 +62,11 @@ function CatalogPage() {
   const [sellGrams, setSellGrams] = useState(1);
   const [ballRequest, setBallRequest] = useState<number | null>(null);
 
-  const products = GOLD_BALLS;
+  const products = investmentProducts;
   const product = products.find((p) => p.id === selected) ?? products[0] ?? null;
-  const productName = (p: (typeof products)[number]) => t("investment.ballName", { weight: p.weight_grams });
+  const productName = (p: Product) => p.name;
 
-  const totalProduct = product
-    ? product.weight_grams * quantity * rate24 * (1 + Number(product.premium_pct) / 100)
-    : 0;
+  const totalProduct = product ? priceBreakdown(product).total * quantity : 0;
 
   const gramsForAmount24 = rate24 > 0 ? amount / rate24 : 0;
   const gramsForAmount18 = rate18 > 0 ? amount / rate18 : 0;
@@ -134,6 +127,7 @@ function CatalogPage() {
       if (mainTab === "amount") {
         if (amount <= 0) throw new Error(t("investment.toastInvalidAmount"));
         createGoldOrder({
+          ownerId: session.id,
           kind: "amount",
           grams: Number(gramsForAmount24.toFixed(4)),
           amount,
@@ -145,11 +139,13 @@ function CatalogPage() {
       } else {
         if (!product) throw new Error(t("investment.toastNoProductSelected"));
         createGoldOrder({
+          ownerId: session.id,
           kind: "product",
-          grams: product.weight_grams * quantity,
+          grams: product.weight * quantity,
           amount: Math.round(totalProduct),
-          rate: rate24,
+          rate: product.karat === "24K" ? rate24 : rate18,
           productName: productName(product),
+          productId: product.id,
           quantity,
           delivery,
           shipMethod: delivery === "shipping" ? shipMethod : undefined,
@@ -171,7 +167,7 @@ function CatalogPage() {
       toast.error(t("investment.toastInvalidSellAmount"));
       return;
     }
-    createGoldOrder({ kind: "sell", grams: Number(g.toFixed(4)), amount: Math.round(g * rate24), rate: rate24 });
+    createGoldOrder({ ownerId: session?.id, kind: "sell", grams: Number(g.toFixed(4)), amount: Math.round(g * rate24), rate: rate24 });
     refresh();
     toast.success(t("investment.toastSellSuccess", { grams: fmtDec(g, 3) }));
   };
@@ -182,7 +178,7 @@ function CatalogPage() {
       return;
     }
     setBallRequest(w);
-    createGoldOrder({ kind: "ball", grams: w, amount: Math.round(w * rate24), rate: rate24 });
+    createGoldOrder({ ownerId: session?.id, kind: "ball", grams: w, amount: Math.round(w * rate24), rate: rate24 });
     refresh();
     toast.success(t("investment.toastBallRequestSuccess", { weight: w }));
   };
@@ -311,8 +307,7 @@ function CatalogPage() {
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {products.map((item) => {
                   const active = product?.id === item.id;
-                  const price =
-                    item.weight_grams * rate24 * (1 + Number(item.premium_pct) / 100);
+                  const price = priceBreakdown(item).total;
                   return (
                     <button
                       type="button"
@@ -324,12 +319,17 @@ function CatalogPage() {
                           : "border-onyx/10 bg-white/60 hover:border-gold/50"
                       }`}
                     >
-                      <div className="mb-4 flex aspect-square w-full items-center justify-center rounded-xl bg-gradient-to-br from-gold/25 to-transparent text-3xl">
-                        ●
+                      <div className="mb-4 overflow-hidden rounded-xl bg-gradient-to-br from-gold/25 to-transparent">
+                        <div className="aspect-square w-full">
+                          <ProductImage
+                            product={item}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
                       </div>
                       <p className="font-serif text-xl">{productName(item)}</p>
                       <p className="mt-1 text-[11px] uppercase tracking-widest text-onyx/45">
-                        {t("investment.weightKaratFee", { weight: item.weight_grams, karat: item.karat, fee: item.premium_pct })}
+                        {item.weight} {t("investment.gramUnit")} • {item.karat} • {item.typeLabel}
                       </p>
                       <p className="mt-3 text-sm text-gold">{fmt(price)} {t("investment.tomanUnit")}</p>
                     </button>
@@ -368,7 +368,7 @@ function CatalogPage() {
               </div>
               <Row
                 label={t("investment.totalWeightRowLabel")}
-                value={`${((product?.weight_grams ?? 0) * quantity).toFixed(3)} ${t("investment.gramUnit")}`}
+                value={`${((product?.weight ?? 0) * quantity).toFixed(3)} ${t("investment.gramUnit")}`}
               />
               <div className="flex justify-between border-t border-onyx/10 pt-3 font-serif text-lg">
                 <span>{t("investment.amountRowLabel")}</span>
@@ -382,7 +382,7 @@ function CatalogPage() {
                 {session ? (busy ? t("investment.submitOrderBusy") : t("investment.submitOrder")) : t("investment.loginOrder")}
               </button>
               <p className="text-center text-[10px] uppercase tracking-widest text-gold">
-                <Link to="/vault">{t("investment.viewMyGoldAccount")}</Link>
+                <Link to="/wallet">{t("investment.viewMyGoldAccount")}</Link>
               </p>
             </aside>
           </form>

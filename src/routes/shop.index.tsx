@@ -6,8 +6,7 @@
   import { ProductImage } from "@/components/site/ProductImage";
   import { SHOP_SEARCH_DEFAULT, type ShopSearch } from "@/lib/shop-search";
   import {
-    products,
-    categories,
+    productsWithBullion as products,
     priceBreakdown,
     formatToman,
     matchesQuickTag,
@@ -17,9 +16,29 @@
   import { useLiveGold } from "@/lib/live-gold";
   import { useWishlist } from "@/lib/wishlist";
   import { useI18n } from "@/lib/i18n/context";
-  import { formatTomanLocalized, tCategory, tGender } from "@/lib/i18n/helpers";
+  import { formatTomanLocalized, tGender } from "@/lib/i18n/helpers";
 
   const DEFAULTS: ShopSearch = SHOP_SEARCH_DEFAULT;
+
+  const JEWELRY_TYPE_FILTERS = [
+    { label: "همه", q: "", category: "all" },
+    { label: "انگشتر", q: "Ring", category: "rings" },
+    { label: "گردنبند", q: "Necklace", category: "necklaces" },
+    { label: "زنجیر", q: "Chain", category: "necklaces" },
+    { label: "دستبند", q: "Bracelet", category: "bracelets" },
+    { label: "النگو", q: "Bangle", category: "bracelets" },
+    { label: "تک پوش", q: "Bangle", category: "bracelets" },
+    { label: "پلاک", q: "Pendant", category: "necklaces" },
+    { label: "گوشواره", q: "Earrings", category: "earrings" },
+  ] as const;
+
+  const INVESTMENT_TYPE_FILTERS = [
+    { label: "همه", q: "", category: "all" },
+    { label: "پارسیان", q: "پارسیان", category: "bullion" },
+    { label: "شمش", q: "شمش", category: "bullion" },
+    { label: "بهار آزادی / نیم / ربع", q: "بهار آزادی", category: "bullion" },
+    { label: "گوی طلا", q: "گوی طلا", category: "bullion" },
+  ] as const;
 
   export const Route = createFileRoute("/shop/")({
     validateSearch: (raw: Record<string, unknown>): ShopSearch => ({
@@ -104,6 +123,21 @@
     };
 
     const filtered = useMemo(() => {
+      const normalizedQuery = search.q.trim().toLowerCase();
+      const queryAliases: Record<string, string[]> = {
+        ring: ["ring"],
+        necklace: ["necklace"],
+        chain: ["chain"],
+        bracelet: ["bracelet"],
+        bangle: ["bangle"],
+        pendant: ["pendant", "single pendant"],
+        earrings: ["earrings"],
+        "پارسیان": ["پارسیان"],
+        "شمش": ["شمش"],
+        "بهار آزادی": ["بهار آزادی", "نیم سکه", "ربع سکه", "سکه بهار آزادی", "coin-bahar", "coin-nim", "coin-rob"],
+        "گوی طلا": ["گوی طلا"],
+      };
+
       let list = products.filter((p) => {
         if (search.category !== "all" && p.category !== search.category) return false;
         if (search.karat !== "all" && p.karat !== search.karat) return false;
@@ -120,11 +154,11 @@
         const total = priceBreakdown(p).total;
         if (total < search.min || total > search.max) return false;
         if (search.tag !== "all" && !matchesQuickTag(p, search.tag)) return false;
-        if (
-          search.q &&
-          !`${p.name} ${p.sku} ${p.typeLabel ?? ""}`.toLowerCase().includes(search.q.toLowerCase())
-        )
-          return false;
+        if (normalizedQuery) {
+          const haystack = `${p.name} ${p.sku} ${p.typeLabel ?? ""} ${p.id}`.toLowerCase();
+          const aliases = queryAliases[search.q] ?? queryAliases[normalizedQuery] ?? [normalizedQuery];
+          if (!aliases.some((alias) => haystack.includes(alias.toLowerCase()))) return false;
+        }
         return true;
       });
       if (search.sort === "price-asc")
@@ -229,14 +263,23 @@
 
 {/* Category */}
 <FilterGroup label={t("shop.filters.category")}>
-  {(
-    ["all", "rings", "necklaces", "bracelets", "earrings", "sets", "bullion"] as const
-  ).map((slug) => (
+  {JEWELRY_TYPE_FILTERS.map((item) => (
     <RadioRow
-      key={slug}
-      label={tCategory(slug, t)}
-      checked={search.category === slug}
-      onChange={() => update({ category: slug })}
+      key={`${item.label}-${item.q || "all"}`}
+      label={item.label}
+      checked={search.category === item.category && search.q === item.q}
+      onChange={() => update({ category: item.category, q: item.q })}
+    />
+  ))}
+</FilterGroup>
+
+<FilterGroup label="فیلتر سرمایه‌گذاری">
+  {INVESTMENT_TYPE_FILTERS.map((item) => (
+    <RadioRow
+      key={`${item.label}-${item.q || "all"}`}
+      label={item.label}
+      checked={search.category === item.category && search.q === item.q}
+      onChange={() => update({ category: item.category, q: item.q })}
     />
   ))}
 </FilterGroup>
